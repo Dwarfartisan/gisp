@@ -2,13 +2,14 @@ package gisp
 
 import (
 	"fmt"
-	. "github.com/Dwarfartisan/goparsec"
-	"reflect"
 	"strconv"
+
+	p "github.com/Dwarfartisan/goparsec"
 )
 
-var BoolParser = Bind(Choice(String("true"), String("false")), func(input interface{}) Parser {
-	return func(st ParseState) (interface{}, error) {
+// BoolParser 解析 bool
+var BoolParser = p.Bind(p.Choice(p.String("true"), p.String("false")), func(input interface{}) p.Parser {
+	return func(st p.ParseState) (interface{}, error) {
 		switch input.(string) {
 		case "true":
 			return true, nil
@@ -20,28 +21,25 @@ var BoolParser = Bind(Choice(String("true"), String("false")), func(input interf
 	}
 })
 
-var NilParser = Bind_(String("nil"), Return(nil))
+// NilParser 解析 nil
+var NilParser = p.Bind_(p.String("nil"), p.Return(nil))
 
-func FloatParser(st ParseState) (interface{}, error) {
-	f, err := Try(Float)(st)
+// IntParser 解析整数
+func IntParser(st p.ParseState) (interface{}, error) {
+	i, err := p.Int(st)
 	if err == nil {
-		return strconv.ParseFloat(f.(string), 64)
-	} else {
+		val, err := strconv.Atoi(i.(string))
+		if err == nil {
+			return Int(val), nil
+		}
 		return nil, err
 	}
+	return nil, err
+
 }
 
-func IntParser(st ParseState) (interface{}, error) {
-	i, err := Int(st)
-	if err == nil {
-		return strconv.Atoi(i.(string))
-	} else {
-		return nil, err
-	}
-}
-
-var EscapeChar = Bind_(Rune('\\'), func(st ParseState) (interface{}, error) {
-	r, err := OneOf("nrt\"\\")(st)
+var EscapeChar = p.Bind_(p.Rune('\\'), func(st p.ParseState) (interface{}, error) {
+	r, err := p.OneOf("nrt\"\\")(st)
 	if err == nil {
 		ru := r.(rune)
 		switch ru {
@@ -66,54 +64,27 @@ var EscapeChar = Bind_(Rune('\\'), func(st ParseState) (interface{}, error) {
 	}
 })
 
-var RuneParser = Bind(
-	Between(Rune('\''), Rune('\''),
-		Either(Try(EscapeChar), NoneOf("'"))),
-	ReturnString)
+var RuneParser = p.Bind(
+	p.Between(p.Rune('\''), p.Rune('\''),
+		p.Either(p.Try(EscapeChar), p.NoneOf("'"))),
+	p.ReturnString)
 
-var StringParser = Bind(
-	Between(Rune('"'), Rune('"'),
-		Many(Either(Try(EscapeChar), NoneOf("\"")))),
-	ReturnString)
+var StringParser = p.Bind(
+	p.Between(p.Rune('"'), p.Rune('"'),
+		p.Many(p.Either(p.Try(EscapeChar), p.NoneOf("\"")))),
+	p.ReturnString)
 
-func TypeParser(st ParseState) (interface{}, error) {
-	return Bind_(String("::"),
-		Choice(
-			Bind_(String("bool"), Return(BOOL)),
-			Bind_(String("float"), Return(FLOAT)),
-			Bind_(String("int"), Return(INT)),
-			Bind_(String("string"), Return(STRING)),
-			Bind_(String("any"), Return(ANY)),
-			Bind_(String("atom"), Return(ATOM)),
-			Bind_(String("quote"), Return(QUOTE)),
-		))(st)
-}
-
-func AtomParser(st ParseState) (interface{}, error) {
-	a, err := Bind(Many1(NoneOf("'() \t\r\n.:")),
-		ReturnString)(st)
-	if err != nil {
-		return nil, err
-	}
-	t, err := Try(TypeParser)(st)
-	if err == nil {
-		return Atom{a.(string), t.(reflect.Type)}, nil
-	} else {
-		return Atom{a.(string), ANY}, nil
-	}
-}
-
-func bodyParser(st ParseState) (interface{}, error) {
-	value, err := SepBy(ValueParser, Many1(Space))(st)
+func bodyParser(st p.ParseState) (interface{}, error) {
+	value, err := p.SepBy(ValueParser, p.Many1(p.Space))(st)
 	return value, err
 }
 
-func ListParser(st ParseState) (interface{}, error) {
-	one := Bind(AtomParser, func(atom interface{}) Parser {
-		return Bind_(Rune(')'), Return(List{atom}))
+func ListParser(st p.ParseState) (interface{}, error) {
+	one := p.Bind(AtomParser, func(atom interface{}) p.Parser {
+		return p.Bind_(p.Rune(')'), p.Return(List{atom}))
 	})
-	list, err := Either(Try(Bind_(Rune('('), one)),
-		Between(Rune('('), Rune(')'), bodyParser))(st)
+	list, err := p.Either(p.Try(p.Bind_(p.Rune('('), one)),
+		p.Between(p.Rune('('), p.Rune(')'), bodyParser))(st)
 	if err == nil {
 		return List(list.([]interface{})), nil
 	} else {
@@ -121,8 +92,8 @@ func ListParser(st ParseState) (interface{}, error) {
 	}
 }
 
-func QuoteParser(st ParseState) (interface{}, error) {
-	lisp, err := Bind_(Rune('\''), ValueParser)(st)
+func QuoteParser(st p.ParseState) (interface{}, error) {
+	lisp, err := p.Bind_(p.Rune('\''), ValueParser)(st)
 	if err == nil {
 		return Quote{lisp}, nil
 	} else {
@@ -130,8 +101,8 @@ func QuoteParser(st ParseState) (interface{}, error) {
 	}
 }
 
-func ValueParser(st ParseState) (interface{}, error) {
-	value, err := Choice(StringParser,
+func ValueParser(st p.ParseState) (interface{}, error) {
+	value, err := p.Choice(StringParser,
 		IntParser,
 		FloatParser,
 		QuoteParser,

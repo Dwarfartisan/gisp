@@ -1,14 +1,15 @@
 package gisp
 
 import (
-	p "github.com/Dwarfartisan/goparsec"
 	"reflect"
 	"testing"
+
+	. "github.com/Dwarfartisan/goparsec"
 )
 
 func TestAtomParse0(t *testing.T) {
 	data := "x"
-	state := p.MemoryParseState(data)
+	state := MemoryParseState(data)
 	a, err := AtomParser(state)
 	if err == nil {
 		test := Atom{"x", ANY}
@@ -22,7 +23,7 @@ func TestAtomParse0(t *testing.T) {
 
 func TestAtomParse1(t *testing.T) {
 	data := "x::atom"
-	state := p.MemoryParseState(data)
+	state := MemoryParseState(data)
 	a, err := AtomParser(state)
 	if err == nil {
 		test := Atom{"x", ATOM}
@@ -36,7 +37,7 @@ func TestAtomParse1(t *testing.T) {
 
 func TestAtomParse2(t *testing.T) {
 	data := "x::any"
-	state := p.MemoryParseState(data)
+	state := MemoryParseState(data)
 	a, err := AtomParser(state)
 	if err == nil {
 		test := Atom{"x", ANY}
@@ -50,7 +51,7 @@ func TestAtomParse2(t *testing.T) {
 
 func TestAtomParse3(t *testing.T) {
 	data := "x::int"
-	state := p.MemoryParseState(data)
+	state := MemoryParseState(data)
 	a, err := AtomParser(state)
 	if err == nil {
 		test := Atom{"x", INT}
