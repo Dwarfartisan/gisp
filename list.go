@@ -40,7 +40,9 @@ func (list List) Eval(env Env) (interface{}, error) {
 	switch item := lisp.(type) {
 	case function:
 		return item(env)(list[1:]...)
-	case Function:
+	case Task:
+		return item.Eval(env)
+	case Go:
 		return item.Eval(env)
 	case Lambda:
 		fun := item.Call(list[1:]...)

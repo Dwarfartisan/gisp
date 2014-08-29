@@ -39,6 +39,8 @@ func eval(env Env, lisp interface{}) (interface{}, error) {
 	case Lisp:
 		value, err := o.Eval(env)
 		return value, err
+	case bool:
+		return Bool(o), nil
 	case float32:
 		return Float(o), nil
 	case float64:
@@ -51,7 +53,7 @@ func eval(env Env, lisp interface{}) (interface{}, error) {
 		return Int(o), nil
 	case int64:
 		return Int(o), nil
-	case Float, Int:
+	case Float, Int, Bool, nil:
 		return o, nil
 	default:
 		return lisp, nil

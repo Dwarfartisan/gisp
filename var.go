@@ -4,28 +4,65 @@ import (
 	"reflect"
 )
 
-type Var struct {
+type Var interface {
+	Get() interface{}
+	Set(interface{})
+	Type() reflect.Type
+}
+
+type OptionVar struct {
 	slot reflect.Value
 }
 
-func (this Var) Get() interface{} {
-	return this.slot
+func (this OptionVar) Get() interface{} {
+	if this.slot.Elem().IsNil() {
+		return nil
+	}
+	return reflect.Indirect(this.slot).Elem().Interface()
 }
 
-func (this *Var) Set(value interface{}) {
+func (this *OptionVar) Set(value interface{}) {
 	if value == nil {
-		typ := this.Type()
-		zero := reflect.Zero(reflect.PtrTo(typ))
-		this.slot.Set(zero)
+		null := reflect.Zero(reflect.PtrTo(this.Type()))
+		this.slot.Elem().Set(null)
 		return
 	}
+	val := reflect.New(this.Type())
+	val.Elem().Set(reflect.ValueOf(value))
+	reflect.Indirect(this.slot).Set(val)
+}
+
+func (this OptionVar) Type() reflect.Type {
+	return this.slot.Type().Elem().Elem()
+}
+
+func DefOption(typ reflect.Type) OptionVar {
+	slot := reflect.New(reflect.PtrTo(typ))
+	null := reflect.Zero(reflect.PtrTo(typ))
+	slot.Elem().Set(null)
+	return OptionVar{slot}
+}
+
+type StrictVar struct {
+	slot reflect.Value
+}
+
+func (this StrictVar) Get() interface{} {
+	if this.slot.IsNil() {
+		return nil
+	}
+	return this.slot.Elem().Interface()
+}
+
+func (this *StrictVar) Set(value interface{}) {
 	this.slot.Elem().Set(reflect.ValueOf(value))
 }
 
-func (this Var) Type() reflect.Type {
+func (this StrictVar) Type() reflect.Type {
 	return this.slot.Type().Elem()
 }
 
-func DefVar(typ reflect.Type) Var {
-	return Var{reflect.New(typ)}
+func DefStrict(typ reflect.Type) StrictVar {
+	slot := reflect.New(typ)
+	return StrictVar{slot}
 }

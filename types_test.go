@@ -20,9 +20,9 @@ func TestTypeString(t *testing.T) {
 }
 
 func TestTypeInt(t *testing.T) {
-	var i int64 = 0
+	var i Int = 0
 	if !reflect.DeepEqual(reflect.TypeOf(i), INT) {
-		t.Fatalf("except %v equal int64 reflect type.", INT)
+		t.Fatalf("except %v equal Int reflect type.", INT)
 	}
 }
 

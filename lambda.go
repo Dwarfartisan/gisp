@@ -79,7 +79,7 @@ func (lambda Lambda) prepareList(env Env, prepare map[string]bool, content List)
 	var err error = nil
 	fun := content[0].(Atom)
 	switch fun.Name {
-	case "define":
+	case "var":
 		name := content[1].(string)
 		if err != nil {
 			return err
@@ -111,7 +111,7 @@ func (lambda Lambda) prepareList(env Env, prepare map[string]bool, content List)
 }
 
 // create a lambda s-expr can be eval
-func (lambda Lambda) Call(args ...interface{}) Function {
+func (lambda Lambda) Call(args ...interface{}) Task {
 	meta := map[string]interface{}{}
 	for k, v := range lambda.Meta {
 		meta[k] = v
@@ -123,7 +123,7 @@ func (lambda Lambda) Call(args ...interface{}) Function {
 	for idx, data := range lambda.Content {
 		content[idx] = data
 	}
-	return Function{meta, content}
+	return Task{meta, content}
 }
 
 func LambdaExpr(env Env) element {
@@ -138,12 +138,12 @@ func LambdaExpr(env Env) element {
 	}
 }
 
-type Function struct {
+type Task struct {
 	Meta    map[string]interface{}
 	Content []interface{}
 }
 
-func (lambda Function) Local(name string) (interface{}, bool) {
+func (lambda Task) Local(name string) (interface{}, bool) {
 	my := lambda.Meta["my"].(map[string]interface{})
 	if value, ok := my[name]; ok {
 		return value, true
@@ -157,7 +157,7 @@ func (lambda Function) Local(name string) (interface{}, bool) {
 	return value, ok
 }
 
-func (lambda Function) Parameter(name string) (interface{}, bool) {
+func (lambda Task) Parameter(name string) (interface{}, bool) {
 	formals := lambda.Meta["formal parameters"].(List)
 	actuals := lambda.Meta["actual parameters"].(List)
 	for idx := range formals {
@@ -169,12 +169,12 @@ func (lambda Function) Parameter(name string) (interface{}, bool) {
 	return nil, false
 }
 
-func (lambda Function) Global(name string) (interface{}, bool) {
+func (lambda Task) Global(name string) (interface{}, bool) {
 	global := lambda.Meta["global"].(Env)
 	return global.Lookup(name)
 }
 
-func (lambda Function) Lookup(name string) (interface{}, bool) {
+func (lambda Task) Lookup(name string) (interface{}, bool) {
 	if value, ok := lambda.Local(name); ok {
 		return value, true
 	} else {
@@ -182,7 +182,7 @@ func (lambda Function) Lookup(name string) (interface{}, bool) {
 	}
 }
 
-func (lambda Function) SetVar(name string, value interface{}) error {
+func (lambda Task) SetVar(name string, value interface{}) error {
 	mine := lambda.Meta["my"].(map[string]interface{})
 	if _, ok := mine[name]; ok {
 		mine[name] = value
@@ -199,7 +199,7 @@ func (lambda Function) SetVar(name string, value interface{}) error {
 	}
 }
 
-func (lambda Function) Define(name string, value interface{}) error {
+func (lambda Task) Define(name string, value interface{}) error {
 	mine := lambda.Meta["my"].(map[string]interface{})
 	if _, ok := mine[name]; ok {
 		return fmt.Errorf("%s was exists.", name)
@@ -209,7 +209,7 @@ func (lambda Function) Define(name string, value interface{}) error {
 	}
 }
 
-func (lambda Function) Eval(env Env) (interface{}, error) {
+func (lambda Task) Eval(env Env) (interface{}, error) {
 	args := lambda.Meta["actual parameters"].(List)
 	actual := make(List, len(args))
 	for idx, arg := range args {
