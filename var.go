@@ -5,8 +5,7 @@ import (
 )
 
 type Var struct {
-	slot interface{}
-	typ  reflect.Type
+	slot reflect.Value
 }
 
 func (this Var) Get() interface{} {
@@ -15,19 +14,18 @@ func (this Var) Get() interface{} {
 
 func (this *Var) Set(value interface{}) {
 	if value == nil {
-		this.slot = nil
+		typ := this.Type()
+		zero := reflect.Zero(reflect.PtrTo(typ))
+		this.slot.Set(zero)
 		return
 	}
-	pipe := reflect.New(this.Type())
-	pipe.Elem().Set(reflect.ValueOf(value))
-	this.slot = pipe.Interface()
+	this.slot.Elem().Set(reflect.ValueOf(value))
 }
 
 func (this Var) Type() reflect.Type {
-	return this.typ.Elem()
+	return this.slot.Type().Elem()
 }
 
 func DefVar(typ reflect.Type) Var {
-	t := reflect.PtrTo(typ)
-	return Var{nil, t}
+	return Var{reflect.New(typ)}
 }
