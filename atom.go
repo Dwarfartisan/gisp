@@ -3,13 +3,12 @@ package gisp
 import (
 	"fmt"
 	p "github.com/Dwarfartisan/goparsec"
-	"reflect"
 )
 
 // Atom 类型表达基础的 atom 类型
 type Atom struct {
 	Name string
-	Type reflect.Type
+	Type Type
 }
 
 func (atom Atom) String() string {
@@ -24,19 +23,6 @@ func (atom Atom) Eval(env Env) (interface{}, error) {
 	return nil, fmt.Errorf("value of atom %s not found", atom.Name)
 }
 
-func TypeParser(st p.ParseState) (interface{}, error) {
-	return p.Bind_(p.String("::"),
-		p.Choice(
-			p.Bind_(p.String("bool"), p.Return(BOOL)),
-			p.Bind_(p.String("float"), p.Return(FLOAT)),
-			p.Bind_(p.String("int"), p.Return(INT)),
-			p.Bind_(p.String("string"), p.Return(STRING)),
-			p.Bind_(p.String("any"), p.Return(ANY)),
-			p.Bind_(p.String("atom"), p.Return(ATOM)),
-			p.Bind_(p.String("quote"), p.Return(QUOTE)),
-		))(st)
-}
-
 func AtomParser(st p.ParseState) (interface{}, error) {
 	a, err := p.Bind(p.Many1(p.NoneOf("'() \t\r\n.:")),
 		p.ReturnString)(st)
@@ -45,8 +31,8 @@ func AtomParser(st p.ParseState) (interface{}, error) {
 	}
 	t, err := p.Try(TypeParser)(st)
 	if err == nil {
-		return Atom{a.(string), t.(reflect.Type)}, nil
+		return Atom{a.(string), t.(Type)}, nil
 	} else {
-		return Atom{a.(string), ANY}, nil
+		return Atom{a.(string), Type{ANY, false}}, nil
 	}
 }

@@ -66,3 +66,13 @@ func DefStrict(typ reflect.Type) StrictVar {
 	slot := reflect.New(typ)
 	return StrictVar{slot}
 }
+
+func VarSlot(typ Type) Var {
+	if typ.Option() {
+		ret := DefOption(typ.Type)
+		return &ret
+	} else {
+		ret := DefStrict(typ.Type)
+		return &ret
+	}
+}

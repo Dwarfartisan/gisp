@@ -182,29 +182,29 @@ func (lambda Task) Lookup(name string) (interface{}, bool) {
 	}
 }
 
-func (lambda Task) SetVar(name string, value interface{}) error {
-	mine := lambda.Meta["my"].(map[string]interface{})
+func (lambda Task) Set(name string, value interface{}) error {
+	mine := lambda.Meta["my"].(map[string]Var)
 	if _, ok := mine[name]; ok {
-		mine[name] = value
+		mine[name].Set(value)
 		return nil
 	} else {
-		local := lambda.Meta["local"].(map[string]interface{})
+		local := lambda.Meta["local"].(map[string]Var)
 		if _, ok := local[name]; ok {
-			local[name] = value
+			local[name].Set(value)
 			return nil
 		} else {
 			global := lambda.Meta["global"].(Env)
-			return global.SetVar(name, value)
+			return global.Set(name, value)
 		}
 	}
 }
 
-func (lambda Task) Define(name string, value interface{}) error {
-	mine := lambda.Meta["my"].(map[string]interface{})
+func (lambda Task) Define(name string, slot Var) error {
+	mine := lambda.Meta["my"].(map[string]Var)
 	if _, ok := mine[name]; ok {
 		return fmt.Errorf("%s was exists.", name)
 	} else {
-		mine[name] = value
+		mine[name] = slot
 		return nil
 	}
 }

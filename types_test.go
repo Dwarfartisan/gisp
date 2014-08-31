@@ -42,7 +42,7 @@ func TestTypeAny(t *testing.T) {
 }
 
 func TestTypeAtom(t *testing.T) {
-	var atom Atom = Atom{"any", reflect.TypeOf(0)}
+	var atom Atom = Atom{"any", Type{reflect.TypeOf(0), true}}
 	if !reflect.DeepEqual(reflect.TypeOf(atom), ATOM) {
 		t.Fatalf("except %v equal Atom reflect type.", ATOM)
 	}

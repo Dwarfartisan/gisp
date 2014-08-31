@@ -5,8 +5,8 @@ type Lisp interface {
 }
 
 type Env interface {
-	Define(name string, value interface{}) error
-	SetVar(name string, value interface{}) error
+	Define(name string, slot Var) error
+	Set(name string, value interface{}) error
 	Lookup(name string) (interface{}, bool)
 	Local(name string) (interface{}, bool)
 	Global(name string) (interface{}, bool)

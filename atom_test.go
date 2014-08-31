@@ -11,12 +11,12 @@ func TestAtomParse0(t *testing.T) {
 	state := p.MemoryParseState(data)
 	a, err := AtomParser(state)
 	if err == nil {
-		test := Atom{"x", ANY}
+		test := Atom{"x", Type{ANY, false}}
 		if !reflect.DeepEqual(test, a) {
-			t.Fatalf("except Atom{\"x\", ATOM} but %v", a)
+			t.Fatalf("except Atom{\"x\", ANY} but %v", a)
 		}
 	} else {
-		t.Fatalf("except Atom{\"x\", ATOM} but %v", err)
+		t.Fatalf("except Atom{\"x\", ANY} but %v", err)
 	}
 }
 
@@ -25,7 +25,7 @@ func TestAtomParse1(t *testing.T) {
 	state := p.MemoryParseState(data)
 	a, err := AtomParser(state)
 	if err == nil {
-		test := Atom{"x", ATOM}
+		test := Atom{"x", Type{ATOM, false}}
 		if !reflect.DeepEqual(test, a) {
 			t.Fatalf("except Atom{\"x\", ATOM} but %v", a)
 		}
@@ -39,7 +39,7 @@ func TestAtomParse2(t *testing.T) {
 	state := p.MemoryParseState(data)
 	a, err := AtomParser(state)
 	if err == nil {
-		test := Atom{"x", ANY}
+		test := Atom{"x", Type{ANY, false}}
 		if !reflect.DeepEqual(test, a) {
 			t.Fatalf("except Atom{\"x\", ANY} but %v", a)
 		}
@@ -53,7 +53,7 @@ func TestAtomParse3(t *testing.T) {
 	state := p.MemoryParseState(data)
 	a, err := AtomParser(state)
 	if err == nil {
-		test := Atom{"x", INT}
+		test := Atom{"x", Type{INT, false}}
 		if !reflect.DeepEqual(test, a) {
 			t.Fatalf("except Atom{\"x\", INT} but %v", a)
 		}

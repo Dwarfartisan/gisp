@@ -19,11 +19,18 @@ var Axiom = Environment{
 		},
 		"var": func(env Env) element {
 			return func(args ...interface{}) (interface{}, error) {
+				first := args[0].(Atom)
+				slot := VarSlot(first.Type)
+				if len(args) == 1 {
+					err := env.Define(first.Name, slot)
+					return nil, err
+				}
 				value, err := eval(env, args[1])
 				if err != nil {
 					return nil, err
 				}
-				err = env.Define((args[0].(Atom)).Name, value)
+				slot.Set(value)
+				err = env.Define(first.Name, slot)
 				return nil, err
 			}
 		},
@@ -33,7 +40,7 @@ var Axiom = Environment{
 				if err != nil {
 					return nil, err
 				}
-				err = env.SetVar((args[0].(Atom)).Name, value)
+				err = env.Set((args[0].(Atom)).Name, value)
 				if err == nil {
 					return nil, err
 				}

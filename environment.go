@@ -12,7 +12,6 @@ func (env Environment) Lookup(name string) (interface{}, bool) {
 		return v, true
 	}
 	return env.Global(name)
-
 }
 
 // Local 实现 Env.Local

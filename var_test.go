@@ -31,6 +31,15 @@ func TestOptionGetNilType(t *testing.T) {
 		t.Fatalf("except INT type but %v", typ)
 	}
 }
+func TestOptionSetValid(t *testing.T) {
+	defer func() {
+		if re := recover(); re == nil {
+			t.Fatal("excpet a panic when set a int to a float value")
+		}
+	}()
+	var slot = DefOption(FLOAT)
+	slot.Set(Int(34))
+}
 
 func TestStrictSet(t *testing.T) {
 	var slot = DefStrict(INT)
@@ -62,4 +71,14 @@ func TestStrictGetNilType(t *testing.T) {
 	if typ != INT {
 		t.Fatalf("except INT type but %v", typ)
 	}
+}
+
+func TestStrictSetValid(t *testing.T) {
+	defer func() {
+		if re := recover(); re == nil {
+			t.Fatal("excpet a panic when set a int to a float value")
+		}
+	}()
+	var slot = DefStrict(FLOAT)
+	slot.Set(Int(34))
 }

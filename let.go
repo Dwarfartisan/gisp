@@ -13,16 +13,18 @@ type Let struct {
 // LetExpr 将 let => (let ((a, value), (b, value)...) ...) 形式构造为一个 let 环境
 func LetExpr(env Env) element {
 	return func(args ...interface{}) (interface{}, error) {
-		local := map[string]interface{}{}
+		local := map[string]Var{}
 		vars := args[0].(List)
 		for _, v := range vars {
 			declares := v.(List)
-			name := (declares[0].(Atom)).Name
+			varb := declares[0].(Atom)
+			slot := VarSlot(varb.Type)
 			value, err := eval(env, (declares[1]))
 			if err != nil {
 				return nil, err
 			}
-			local[name] = value
+			slot.Set(value)
+			local[varb.Name] = slot
 		}
 		meta := map[string]interface{}{
 			"local": local,
@@ -33,24 +35,24 @@ func LetExpr(env Env) element {
 }
 
 // Define 实现 Env.Define
-func (let Let) Define(name string, value interface{}) error {
+func (let Let) Define(name string, slot Var) error {
 	if _, ok := let.Local(name); ok {
 		return fmt.Errorf("local name %s is exists", name)
 	}
 	local := let.Meta["local"].(map[string]interface{})
-	local[name] = value
+	local[name] = slot
 	return nil
 }
 
 // SetVar 实现 Env.SetVar
-func (let Let) SetVar(name string, value interface{}) error {
+func (let Let) Set(name string, value interface{}) error {
 	if _, ok := let.Local(name); ok {
-		local := let.Meta["local"].(map[string]interface{})
-		local[name] = value
+		local := let.Meta["local"].(map[string]Var)
+		local[name].Set(value)
 		return nil
 	}
 	global := let.Meta["global"].(Env)
-	return global.SetVar(name, value)
+	return global.Set(name, value)
 
 }
 

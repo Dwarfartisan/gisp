@@ -8,7 +8,7 @@ import (
 // Gisp 实现一个基本的 gisp 解释器
 type Gisp struct {
 	Meta    map[string]interface{}
-	Content map[string]interface{}
+	Content map[string]Var
 }
 
 // NewGisp 给定若干可以组合的基准环境，用于构造环境
@@ -18,24 +18,24 @@ func NewGisp(buildins map[string]Environment) (*Gisp, error) {
 			"category": "gisp",
 			"buildins": buildins,
 		},
-		Content: map[string]interface{}{},
+		Content: map[string]Var{},
 	}
 	return &ret, nil
 }
 
 // Define 实现 Env.Define
-func (gisp Gisp) Define(name string, value interface{}) error {
+func (gisp Gisp) Define(name string, slot Var) error {
 	if _, ok := gisp.Content[name]; ok {
 		return fmt.Errorf("var %s exists", name)
 	}
-	gisp.Content[name] = value
+	gisp.Content[name] = slot
 	return nil
 }
 
 // Set 实现 Env.Set 接口
-func (gisp Gisp) SetVar(name string, value interface{}) error {
+func (gisp Gisp) Set(name string, value interface{}) error {
 	if _, ok := gisp.Content[name]; ok {
-		gisp.Content[name] = value
+		gisp.Content[name].Set(value)
 		return nil
 	} else {
 		return fmt.Errorf("Setable var %s not found", name)
