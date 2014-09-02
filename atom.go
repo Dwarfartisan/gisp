@@ -17,7 +17,8 @@ func (atom Atom) String() string {
 
 // Eval 方法实现 atom 实例的求值行为
 func (atom Atom) Eval(env Env) (interface{}, error) {
-	if value, ok := env.Lookup(atom.Name); ok {
+	if slot, ok := env.Lookup(atom.Name); ok {
+		value := slot.(Var).Get()
 		return value, nil
 	}
 	return nil, fmt.Errorf("value of atom %s not found", atom.Name)

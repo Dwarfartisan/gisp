@@ -6,7 +6,7 @@ import (
 
 // Axiom 是基本的 LISP 公理实现，尽可能贴近原始的 LISP 公理描述，但是部分实现对实际的 golang
 // 环境做了妥协
-var Axiom = Environment{
+var Axiom = Toolkit{
 	Meta: map[string]interface{}{
 		"name":     "axiom",
 		"category": "environment",
@@ -22,7 +22,7 @@ var Axiom = Environment{
 				first := args[0].(Atom)
 				slot := VarSlot(first.Type)
 				if len(args) == 1 {
-					err := env.Define(first.Name, slot)
+					err := env.Defvar(first.Name, slot)
 					return nil, err
 				}
 				value, err := eval(env, args[1])
@@ -30,7 +30,7 @@ var Axiom = Environment{
 					return nil, err
 				}
 				slot.Set(value)
-				err = env.Define(first.Name, slot)
+				err = env.Defvar(first.Name, slot)
 				return nil, err
 			}
 		},
@@ -40,7 +40,7 @@ var Axiom = Environment{
 				if err != nil {
 					return nil, err
 				}
-				err = env.Set((args[0].(Atom)).Name, value)
+				err = env.Setvar((args[0].(Atom)).Name, value)
 				if err == nil {
 					return nil, err
 				}

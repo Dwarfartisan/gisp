@@ -34,8 +34,8 @@ func LetExpr(env Env) element {
 	}
 }
 
-// Define 实现 Env.Define
-func (let Let) Define(name string, slot Var) error {
+// Defvar 实现 Env.Defvar
+func (let Let) Defvar(name string, slot Var) error {
 	if _, ok := let.Local(name); ok {
 		return fmt.Errorf("local name %s is exists", name)
 	}
@@ -44,16 +44,32 @@ func (let Let) Define(name string, slot Var) error {
 	return nil
 }
 
-// SetVar 实现 Env.SetVar
-func (let Let) Set(name string, value interface{}) error {
+// Defun 实现 Env.Defun
+func (let Let) Defun(name string, fun Function) error {
+	if s, ok := let.Local(name); ok {
+		switch slot := s.(type) {
+		case Function:
+			slot.Overload(fun.Content...)
+		case Var:
+			return fmt.Errorf("%s defined as a var", name)
+		default:
+			return fmt.Errorf("exists name %s isn't function", name)
+		}
+	}
+	local := let.Meta["local"].(map[string]interface{})
+	local[name] = fun
+	return nil
+}
+
+// Setvar 实现 Env.Setvar
+func (let Let) Setvar(name string, value interface{}) error {
 	if _, ok := let.Local(name); ok {
 		local := let.Meta["local"].(map[string]Var)
 		local[name].Set(value)
 		return nil
 	}
 	global := let.Meta["global"].(Env)
-	return global.Set(name, value)
-
+	return global.Setvar(name, value)
 }
 
 // Local 实现 Env.Local

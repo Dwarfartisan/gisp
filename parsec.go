@@ -85,8 +85,8 @@ func QuoteParser(st p.ParseState) (interface{}, error) {
 
 func ValueParser(st p.ParseState) (interface{}, error) {
 	value, err := p.Choice(StringParser,
-		IntParser,
 		FloatParser,
+		IntParser,
 		QuoteParser,
 		RuneParser,
 		StringParser,

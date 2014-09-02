@@ -45,7 +45,10 @@ func (list List) Eval(env Env) (interface{}, error) {
 	case Go:
 		return item.Eval(env)
 	case Lambda:
-		fun := item.Call(list[1:]...)
+		fun, err := item.Task(list[1:]...)
+		if err != nil {
+			return nil, err
+		}
 		return fun.Eval(env)
 	case Let:
 		return item.Eval(env)

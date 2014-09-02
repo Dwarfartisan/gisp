@@ -1,22 +1,22 @@
 package gisp
 
-// Environment 实现了一个基本环境
-type Environment struct {
+// Toolkit 实现了一个基本环境，它没有 Define 和 Set ，用于封装只读的环境。
+type Toolkit struct {
 	Meta    map[string]interface{}
 	Content map[string]function
 }
 
 // Lookup 实现了基本的 Env.Lookup 策略：现在 Local 中查找，否则向上查找 Gobal
-func (env Environment) Lookup(name string) (interface{}, bool) {
-	if v, ok := env.Local(name); ok {
+func (tk Toolkit) Lookup(name string) (interface{}, bool) {
+	if v, ok := tk.Local(name); ok {
 		return v, true
 	}
-	return env.Global(name)
+	return tk.Global(name)
 }
 
 // Local 实现 Env.Local
-func (env Environment) Local(name string) (interface{}, bool) {
-	if v, ok := env.Content[name]; ok {
+func (tk Toolkit) Local(name string) (interface{}, bool) {
+	if v, ok := tk.Content[name]; ok {
 		return v, true
 	}
 	return nil, false
@@ -24,8 +24,8 @@ func (env Environment) Local(name string) (interface{}, bool) {
 }
 
 // Global 实现 Env.Global 。如果 Meta 中没有注册 global ，视作顶层环境，返回notfound
-func (env Environment) Global(name string) (interface{}, bool) {
-	if o, ok := env.Meta["global"]; ok {
+func (tk Toolkit) Global(name string) (interface{}, bool) {
+	if o, ok := tk.Meta["global"]; ok {
 		outer := o.(Env)
 		return outer.Lookup(name)
 	}

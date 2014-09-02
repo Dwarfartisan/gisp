@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-var Propositions Environment = Environment{
+var Propositions Toolkit = Toolkit{
 	Meta: map[string]interface{}{
 		"name":     "propositions",
 		"category": "environment",

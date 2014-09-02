@@ -2,6 +2,8 @@ package gisp
 
 import (
 	"fmt"
+	p "github.com/Dwarfartisan/goparsec"
+	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
 // Lambda 实现基本的 Lambda 行为
@@ -13,10 +15,10 @@ type Lambda struct {
 // DeclareLambda 构造 Lambda 表达式 (lambda (args...) body)
 func DeclareLambda(env Env, args List, lisps ...interface{}) (*Lambda, error) {
 	ret := Lambda{map[string]interface{}{
-		"category":          "lambda",
-		"formal parameters": args,
-		"local":             map[string]interface{}{},
+		"category": "lambda",
+		"local":    map[string]interface{}{},
 	}, List{}}
+	ret.prepareArgs(args)
 	prepare := map[string]bool{}
 	for _, lisp := range lisps {
 		err := ret.prepare(env, prepare, lisp)
@@ -25,6 +27,43 @@ func DeclareLambda(env Env, args List, lisps ...interface{}) (*Lambda, error) {
 		}
 	}
 	return &ret, nil
+}
+
+func (lambda *Lambda) prepareArgs(args List) {
+	l := len(args)
+	formals := make(List, len(args))
+	if l == 0 {
+		lambda.Meta["parameters parsex"] = []Var{}
+		return
+	}
+	lidx := l - 1
+	last := args[l-1].(Atom)
+	name := last.Name
+	isVariadic := false
+	namelen := len(name)
+	if namelen >= 4 {
+		st := p.MemoryParseState(name[namelen-4:])
+		_, err := p.Binds_(p.NoneOf("."), p.String("..."), p.Eof)(st)
+		if err == nil {
+			isVariadic = true
+		}
+	}
+	lambda.Meta["is variadic"] = isVariadic
+	ps := make([]px.Parser, len(args))
+	for idx, arg := range args[:lidx] {
+		ps[idx] = argParser(arg.(Atom))
+		formals[idx] = arg
+	}
+	if isVariadic {
+		ps[lidx] = px.Many(argParser(last))
+		larg := Atom{name[namelen-3:], last.Type}
+		formals[lidx] = larg
+	} else {
+		ps[lidx] = argParser(last)
+		formals[lidx] = last
+	}
+	lambda.Meta["formals parameters"] = formals
+	lambda.Meta["parameter parsexs"] = ps
 }
 
 func (lambda *Lambda) prepare(env Env, prepare map[string]bool, content interface{}) error {
@@ -110,20 +149,40 @@ func (lambda Lambda) prepareList(env Env, prepare map[string]bool, content List)
 	return err
 }
 
+// 类型签名
+func (lambda Lambda) TypeSign() []Type {
+	formals := lambda.Meta["formal parameters"].(List)
+	types := make([]Type, len(formals))
+	for idx, formal := range formals {
+		types[idx] = formal.(Atom).Type
+	}
+	return types
+}
+
+func (lambda *Lambda) TryArgsSign(args ...interface{}) (interface{}, error) {
+	pxs := lambda.Meta["parameter parsexs"].([]px.Parser)
+	st := px.NewStateInMemory(args)
+	return px.UnionAll(pxs...)(st)
+}
+
 // create a lambda s-expr can be eval
-func (lambda Lambda) Call(args ...interface{}) Task {
+func (lambda Lambda) Task(args ...interface{}) (*Task, error) {
 	meta := map[string]interface{}{}
 	for k, v := range lambda.Meta {
 		meta[k] = v
 	}
-	meta["actual parameters"] = List(args)
-	meta["my"] = map[string]interface{}{}
+	actuals, err := lambda.TryArgsSign(args...)
+	if err != nil {
+		return nil, err
+	}
+	meta["actual parameters"] = actuals
+	meta["my"] = map[string]Var{}
 	l := len(lambda.Content)
 	content := make([]interface{}, l)
 	for idx, data := range lambda.Content {
 		content[idx] = data
 	}
-	return Task{meta, content}
+	return &Task{meta, content}, nil
 }
 
 func LambdaExpr(env Env) element {
@@ -135,106 +194,5 @@ func LambdaExpr(env Env) element {
 		} else {
 			return nil, err
 		}
-	}
-}
-
-type Task struct {
-	Meta    map[string]interface{}
-	Content []interface{}
-}
-
-func (lambda Task) Local(name string) (interface{}, bool) {
-	my := lambda.Meta["my"].(map[string]interface{})
-	if value, ok := my[name]; ok {
-		return value, true
-	}
-	if value, ok := lambda.Parameter(name); ok {
-		return value, true
-	}
-
-	local := lambda.Meta["local"].(map[string]interface{})
-	value, ok := local[name]
-	return value, ok
-}
-
-func (lambda Task) Parameter(name string) (interface{}, bool) {
-	formals := lambda.Meta["formal parameters"].(List)
-	actuals := lambda.Meta["actual parameters"].(List)
-	for idx := range formals {
-		formal := formals[idx].(Atom)
-		if formal.Name == name {
-			return actuals[idx], true
-		}
-	}
-	return nil, false
-}
-
-func (lambda Task) Global(name string) (interface{}, bool) {
-	global := lambda.Meta["global"].(Env)
-	return global.Lookup(name)
-}
-
-func (lambda Task) Lookup(name string) (interface{}, bool) {
-	if value, ok := lambda.Local(name); ok {
-		return value, true
-	} else {
-		return lambda.Global(name)
-	}
-}
-
-func (lambda Task) Set(name string, value interface{}) error {
-	mine := lambda.Meta["my"].(map[string]Var)
-	if _, ok := mine[name]; ok {
-		mine[name].Set(value)
-		return nil
-	} else {
-		local := lambda.Meta["local"].(map[string]Var)
-		if _, ok := local[name]; ok {
-			local[name].Set(value)
-			return nil
-		} else {
-			global := lambda.Meta["global"].(Env)
-			return global.Set(name, value)
-		}
-	}
-}
-
-func (lambda Task) Define(name string, slot Var) error {
-	mine := lambda.Meta["my"].(map[string]Var)
-	if _, ok := mine[name]; ok {
-		return fmt.Errorf("%s was exists.", name)
-	} else {
-		mine[name] = slot
-		return nil
-	}
-}
-
-func (lambda Task) Eval(env Env) (interface{}, error) {
-	args := lambda.Meta["actual parameters"].(List)
-	actual := make(List, len(args))
-	for idx, arg := range args {
-		a, err := eval(env, arg)
-		if err == nil {
-			actual[idx] = a
-		} else {
-			return nil, err
-		}
-	}
-	lambda.Meta["actual parameters"] = args
-	lambda.Meta["global"] = env
-	l := len(lambda.Content)
-	switch l {
-	case 0:
-		return nil, nil
-	case 1:
-		return eval(lambda, lambda.Content[0])
-	default:
-		for _, expr := range lambda.Content[:l-2] {
-			_, err := eval(lambda, expr)
-			if err != nil {
-				return nil, err
-			}
-		}
-		return eval(lambda, lambda.Content[l-1])
 	}
 }
