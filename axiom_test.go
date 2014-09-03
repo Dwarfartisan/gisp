@@ -25,7 +25,7 @@ func TestQuoteCall(t *testing.T) {
 	if !ok {
 		t.Fatalf("except found quote in axioms")
 	}
-	quote := q.(function)
+	quote := q.(Expr)
 	fb, err := quote(gisp)(list)
 	if err != nil {
 		t.Fatalf("except quote eval but %v", err)

@@ -9,7 +9,7 @@ var Propositions Toolkit = Toolkit{
 		"name":     "propositions",
 		"category": "environment",
 	},
-	Content: map[string]function{
+	Content: map[string]Expr{
 		"lambda": LambdaExpr,
 		"let":    LetExpr,
 		"+":      addExpr,

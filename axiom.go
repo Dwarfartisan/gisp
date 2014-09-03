@@ -11,7 +11,7 @@ var Axiom = Toolkit{
 		"name":     "axiom",
 		"category": "environment",
 	},
-	Content: map[string]function{
+	Content: map[string]Expr{
 		"quote": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				return Quote{args[0]}, nil

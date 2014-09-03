@@ -166,7 +166,7 @@ func (lambda Lambda) MatchArgsSign(args ...interface{}) (interface{}, error) {
 	return px.Union(pxs...)(st)
 }
 
-// create a lambda s-expr can be eval
+// create a lambda s-Expr can be eval
 func (lambda Lambda) Task(args ...interface{}) (Lisp, error) {
 	meta := map[string]interface{}{}
 	for k, v := range lambda.Meta {

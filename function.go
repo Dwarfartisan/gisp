@@ -78,7 +78,7 @@ func DefunExpr(env Env) Element {
 					return nil, err
 				}
 			} else {
-				return nil, fmt.Errorf("%v is defined as no function", funName.Name)
+				return nil, fmt.Errorf("%v is defined as no Expr", funName.Name)
 			}
 		} else {
 			ret, err := Defun(env, funName, *lambda)

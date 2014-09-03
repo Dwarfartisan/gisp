@@ -22,7 +22,7 @@ func (atom Atom) Eval(env Env) (interface{}, error) {
 		case Var:
 			value := slot.Get()
 			return value, nil
-		case function:
+		case Expr:
 			return slot(env), nil
 		default:
 			return slot, nil

@@ -22,4 +22,4 @@ type Env interface {
 }
 
 type Element func(args ...interface{}) (interface{}, error)
-type function func(Env) Element
+type Expr func(Env) Element

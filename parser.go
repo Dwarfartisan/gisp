@@ -42,7 +42,7 @@ func (gisp Gisp) Defun(fun Func) error {
 		case Var:
 			return fmt.Errorf("%s defined as a var")
 		default:
-			return fmt.Errorf("exists name %s isn't function", name)
+			return fmt.Errorf("exists name %s isn't Expr", name)
 		}
 	}
 	gisp.Content[name] = fun
@@ -57,7 +57,7 @@ func (gisp Gisp) Setvar(name string, value interface{}) error {
 			slot.Set(value)
 			return nil
 		case Function:
-			return fmt.Errorf("%v is a function", name)
+			return fmt.Errorf("%v is a Expr", name)
 		default:
 			return fmt.Errorf("%v is't a var canbe set", name)
 		}

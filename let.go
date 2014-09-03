@@ -54,7 +54,7 @@ func (let Let) Defun(fun Func) error {
 		case Var:
 			return fmt.Errorf("%s defined as a var", name)
 		default:
-			return fmt.Errorf("exists name %s isn't function", name)
+			return fmt.Errorf("exists name %s isn't Expr", name)
 		}
 	}
 	local := let.Meta["local"].(map[string]interface{})
@@ -105,10 +105,10 @@ func (let Let) Eval(env Env) (interface{}, error) {
 	case 1:
 		return eval(let, let.Content[0])
 	default:
-		for _, expr := range let.Content[:l-2] {
-			eval(let, expr)
+		for _, Expr := range let.Content[:l-2] {
+			eval(let, Expr)
 		}
-		expr := let.Content[l-1]
-		return eval(let, expr)
+		Expr := let.Content[l-1]
+		return eval(let, Expr)
 	}
 }

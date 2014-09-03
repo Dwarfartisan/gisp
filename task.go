@@ -97,7 +97,7 @@ func (task Task) Defun(fun Func) error {
 		case Var:
 			return fmt.Errorf("%s defined as a var", name)
 		default:
-			return fmt.Errorf("exists name %s isn't function", name)
+			return fmt.Errorf("exists name %s isn't Expr", name)
 		}
 	}
 	my := task.Meta["my"].(map[string]interface{})
@@ -129,8 +129,8 @@ func (task Task) Eval(env Env) (interface{}, error) {
 	case 1:
 		return eval(task, task.Content[0])
 	default:
-		for _, expr := range task.Content[:l-2] {
-			_, err := eval(task, expr)
+		for _, Expr := range task.Content[:l-2] {
+			_, err := eval(task, Expr)
 			if err != nil {
 				return nil, err
 			}
