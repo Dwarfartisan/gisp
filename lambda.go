@@ -49,7 +49,7 @@ func (lambda *Lambda) prepareArgs(args List) {
 		}
 	}
 	lambda.Meta["is variadic"] = isVariadic
-	ps := make([]px.Parser, len(args))
+	ps := make([]px.Parser, l+1)
 	for idx, arg := range args[:lidx] {
 		ps[idx] = argParser(arg.(Atom))
 		formals[idx] = arg
@@ -62,6 +62,7 @@ func (lambda *Lambda) prepareArgs(args List) {
 		ps[lidx] = argParser(last)
 		formals[lidx] = last
 	}
+	ps[l] = px.Eof
 	lambda.Meta["formals parameters"] = formals
 	lambda.Meta["parameter parsexs"] = ps
 }
@@ -159,21 +160,21 @@ func (lambda Lambda) TypeSign() []Type {
 	return types
 }
 
-func (lambda *Lambda) TryArgsSign(args ...interface{}) (interface{}, error) {
+func (lambda Lambda) MatchArgsSign(args ...interface{}) (interface{}, error) {
 	pxs := lambda.Meta["parameter parsexs"].([]px.Parser)
 	st := px.NewStateInMemory(args)
-	return px.UnionAll(pxs...)(st)
+	return px.Union(pxs...)(st)
 }
 
 // create a lambda s-expr can be eval
-func (lambda Lambda) Task(args ...interface{}) (*Task, error) {
+func (lambda Lambda) Task(args ...interface{}) (Lisp, error) {
 	meta := map[string]interface{}{}
 	for k, v := range lambda.Meta {
 		meta[k] = v
 	}
-	actuals, err := lambda.TryArgsSign(args...)
+	actuals, err := lambda.MatchArgsSign(args...)
 	if err != nil {
-		return nil, err
+		return Nil{}, err
 	}
 	meta["actual parameters"] = actuals
 	meta["my"] = map[string]Var{}
@@ -185,7 +186,7 @@ func (lambda Lambda) Task(args ...interface{}) (*Task, error) {
 	return &Task{meta, content}, nil
 }
 
-func LambdaExpr(env Env) element {
+func LambdaExpr(env Env) Element {
 	return func(args ...interface{}) (interface{}, error) {
 		_args := args[0].(List)
 		ret, err := DeclareLambda(env, _args, args[1:]...)

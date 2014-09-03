@@ -33,13 +33,14 @@ func (gisp Gisp) Defvar(name string, slot Var) error {
 }
 
 // Defun 实现 Env.Defun
-func (gisp Gisp) Defun(name string, fun Function) error {
+func (gisp Gisp) Defun(fun Func) error {
+	name := fun.Name()
 	if s, ok := gisp.Local(name); ok {
 		switch slot := s.(type) {
-		case Function:
-			slot.Overload(fun.Content...)
+		case Func:
+			slot.Overload(fun.Content()...)
 		case Var:
-			return fmt.Errorf("%s defined as a var", name)
+			return fmt.Errorf("%s defined as a var")
 		default:
 			return fmt.Errorf("exists name %s isn't function", name)
 		}

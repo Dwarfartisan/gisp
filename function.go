@@ -4,19 +4,35 @@ import (
 	"fmt"
 )
 
+type TypeSignError struct {
+	Type  Type
+	Value interface{}
+}
+
+func (err TypeSignError) Error() string {
+	return fmt.Sprintf("%v can't match %v", err.Value, err.Type)
+}
+
+type Func interface {
+	Functor
+	Name() string
+	Overload(functor ...Functor) error
+	Content() []Functor
+}
+
 type Function struct {
 	atom    Atom
 	Global  Env
-	Content []Lambda
+	content []Functor
 }
 
 func (fun Function) Name() string {
 	return fun.atom.Name
 }
 
-func (fun Function) Task(args ...interface{}) (*Task, error) {
-	for _, lambda := range fun.Content {
-		task, err := lambda.Task(args...)
+func (fun Function) Task(args ...interface{}) (Lisp, error) {
+	for _, functor := range fun.content {
+		task, err := functor.Task(args...)
 		if err == nil {
 			return task, nil
 		}
@@ -30,18 +46,22 @@ func (fun Function) Task(args ...interface{}) (*Task, error) {
 	return nil, fmt.Errorf("not found args type sign for %v", args)
 }
 
-func (fun *Function) Overload(lambda ...Lambda) error {
-	fun.Content = append(lambda, fun.Content...)
+func (fun *Function) Overload(functor ...Functor) error {
+	fun.content = append(functor, fun.content...)
 	return nil
 }
 
-func Defun(env Env, funName Atom, lambda Lambda) (*Function, error) {
-	fun := Function{funName, env, []Lambda{lambda}}
-	err := env.Defun(funName.Name, fun)
+func (fun Function) Content() []Functor {
+	return fun.content
+}
+
+func Defun(env Env, funName Atom, functor Functor) (*Function, error) {
+	fun := Function{funName, env, []Functor{functor}}
+	err := env.Defun(&fun)
 	return &fun, err
 }
 
-func DefunExpr(env Env) element {
+func DefunExpr(env Env) Element {
 	return func(args ...interface{}) (interface{}, error) {
 		funName := args[0].(Atom)
 		_args := args[1].(List)

@@ -12,12 +12,12 @@ var Axiom = Toolkit{
 		"category": "environment",
 	},
 	Content: map[string]function{
-		"quote": func(env Env) element {
+		"quote": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				return Quote{args[0]}, nil
 			}
 		},
-		"var": func(env Env) element {
+		"var": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				first := args[0].(Atom)
 				slot := VarSlot(first.Type)
@@ -34,7 +34,7 @@ var Axiom = Toolkit{
 				return nil, err
 			}
 		},
-		"set": func(env Env) element {
+		"set": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				value, err := eval(env, args[1])
 				if err != nil {
@@ -48,7 +48,7 @@ var Axiom = Toolkit{
 
 			}
 		},
-		"equal": func(env Env) element {
+		"equal": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				x, err := eval(env, args[0])
 				if err != nil {
@@ -61,7 +61,7 @@ var Axiom = Toolkit{
 				return reflect.DeepEqual(x, y), nil
 			}
 		},
-		"cond": func(env Env) element {
+		"cond": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				cases := args[0].([]interface{})
 				l := len(args)
@@ -90,7 +90,7 @@ var Axiom = Toolkit{
 				return nil, nil
 			}
 		},
-		"car": func(env Env) element {
+		"car": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				// FIXME: out range error
 				lisp, err := eval(env, args[0])
@@ -100,7 +100,7 @@ var Axiom = Toolkit{
 				return (lisp.(List))[0], nil
 			}
 		},
-		"cdr": func(env Env) element {
+		"cdr": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				// FIXME: out range error
 				lisp, err := eval(env, args[0])
@@ -111,7 +111,7 @@ var Axiom = Toolkit{
 			}
 		},
 		// atom while true both lisp atom or go value
-		"atom": func(env Env) element {
+		"atom": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				arg := args[0]
 				if l, ok := arg.(List); ok {
@@ -122,7 +122,7 @@ var Axiom = Toolkit{
 		},
 		// 照搬 cons 运算符对于 golang 嵌入没有足够的收益，这里的 concat 是一个 cons 的变形，
 		// 它总是返回包含所有参数的 List 。
-		"concat": func(env Env) element {
+		"concat": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				return List(args), nil
 			}

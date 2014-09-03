@@ -58,3 +58,15 @@ func eval(env Env, lisp interface{}) (interface{}, error) {
 		return lisp, nil
 	}
 }
+
+func evals(env Env, args ...interface{}) (interface{}, error) {
+	data := make([]interface{}, len(args))
+	for idx, arg := range args {
+		ret, err := eval(env, arg)
+		if err != nil {
+			return nil, err
+		}
+		data[idx] = ret
+	}
+	return data, nil
+}

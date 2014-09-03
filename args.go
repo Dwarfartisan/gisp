@@ -21,7 +21,7 @@ func typeis(x Atom) func(int, interface{}) (interface{}, error) {
 		if reflect.DeepEqual(x.Type.Type, reflect.TypeOf(data)) {
 			return data, nil
 		} else {
-			return data, fmt.Errorf("%v's type not match %v", data, x.Type)
+			return data, TypeSignError{x.Type, data}
 		}
 	}
 }

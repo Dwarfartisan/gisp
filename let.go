@@ -11,7 +11,7 @@ type Let struct {
 }
 
 // LetExpr 将 let => (let ((a, value), (b, value)...) ...) 形式构造为一个 let 环境
-func LetExpr(env Env) element {
+func LetExpr(env Env) Element {
 	return func(args ...interface{}) (interface{}, error) {
 		local := map[string]Var{}
 		vars := args[0].(List)
@@ -45,11 +45,12 @@ func (let Let) Defvar(name string, slot Var) error {
 }
 
 // Defun 实现 Env.Defun
-func (let Let) Defun(name string, fun Function) error {
+func (let Let) Defun(fun Func) error {
+	name := fun.Name()
 	if s, ok := let.Local(name); ok {
 		switch slot := s.(type) {
-		case Function:
-			slot.Overload(fun.Content...)
+		case Func:
+			slot.Overload(fun.Content()...)
 		case Var:
 			return fmt.Errorf("%s defined as a var", name)
 		default:

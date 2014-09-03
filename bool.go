@@ -23,3 +23,10 @@ var BoolParser = p.Bind(p.Choice(p.String("true"), p.String("false")), func(inpu
 
 // NilParser 解析 nil
 var NilParser = p.Bind_(p.String("nil"), p.Return(nil))
+
+type Nil struct {
+}
+
+func (n Nil) Eval(env Env) (interface{}, error) {
+	return nil, nil
+}

@@ -45,11 +45,17 @@ func (list List) Eval(env Env) (interface{}, error) {
 	case Go:
 		return item.Eval(env)
 	case Lambda:
-		fun, err := item.Task(list[1:]...)
+		lisp, err := item.Task(list[1:]...)
 		if err != nil {
 			return nil, err
 		}
-		return fun.Eval(env)
+		return lisp.Eval(env)
+	case Function:
+		lisp, err := item.Task(list[1:]...)
+		if err != nil {
+			return nil, err
+		}
+		return lisp.Eval(env)
 	case Let:
 		return item.Eval(env)
 	default:
