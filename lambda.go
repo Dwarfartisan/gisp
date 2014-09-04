@@ -2,7 +2,6 @@ package gisp
 
 import (
 	"fmt"
-	p "github.com/Dwarfartisan/goparsec"
 	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
@@ -38,15 +37,10 @@ func (lambda *Lambda) prepareArgs(args List) {
 	}
 	lidx := l - 1
 	last := args[l-1].(Atom)
-	name := last.Name
+	// variadic function args formal as (last[::Type] ... )
 	isVariadic := false
-	namelen := len(name)
-	if namelen >= 4 {
-		st := p.MemoryParseState(name[namelen-4:])
-		_, err := p.Binds_(p.NoneOf("."), p.String("..."), p.Eof)(st)
-		if err == nil {
-			isVariadic = true
-		}
+	if last.Name == "..." && len(args) > 1 {
+		isVariadic = true
 	}
 	lambda.Meta["is variadic"] = isVariadic
 	ps := make([]px.Parser, l+1)
@@ -55,8 +49,9 @@ func (lambda *Lambda) prepareArgs(args List) {
 		formals[idx] = arg
 	}
 	if isVariadic {
+		varArg := args[l-2].(Atom)
 		ps[lidx] = px.Many(argParser(last))
-		larg := Atom{name[namelen-3:], last.Type}
+		larg := Atom{varArg.Name, varArg.Type}
 		formals[lidx] = larg
 	} else {
 		ps[lidx] = argParser(last)

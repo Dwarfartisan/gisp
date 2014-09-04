@@ -18,7 +18,7 @@ type Env interface {
 	Toolbox
 	Defvar(name string, slot Var) error
 	Setvar(name string, value interface{}) error
-	Defun(fun Func) error
+	Defun(name string, functor Functor) error
 }
 
 type Element func(args ...interface{}) (interface{}, error)

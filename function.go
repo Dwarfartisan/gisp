@@ -16,14 +16,36 @@ func (err TypeSignError) Error() string {
 type Func interface {
 	Functor
 	Name() string
-	Overload(functor ...Functor) error
+	Overload(functor Functor) error
 	Content() []Functor
+}
+
+type ExprFunctor struct {
+	eval func(env Env) (interface{}, error)
+}
+
+func ExprFunc(expr Expr, args ...interface{}) Lisp {
+	return &ExprFunctor{eval: func(env Env) (interface{}, error) {
+		return expr(env)(args...)
+	}}
+}
+
+func (ef *ExprFunctor) Eval(env Env) (interface{}, error) {
+	return ef.eval(env)
 }
 
 type Function struct {
 	atom    Atom
 	Global  Env
 	content []Functor
+}
+
+func NewFunction(name string, global Env, functor Functor) *Function {
+	return &Function{
+		atom:    Atom{name, Type{ANY, false}},
+		Global:  global,
+		content: []Functor{functor},
+	}
 }
 
 func (fun Function) Name() string {
@@ -37,28 +59,25 @@ func (fun Function) Task(args ...interface{}) (Lisp, error) {
 			return task, nil
 		}
 	}
-	if f, ok := fun.Global.Lookup(fun.Name()); ok {
-		if foo := f.(Function); ok {
+	if f, ok := fun.Global.Global(fun.Name()); ok {
+		switch foo := f.(type) {
+		case Func:
 			return foo.Task(args...)
+		case Expr:
+			return ExprFunc(foo, args...), nil
 		}
 	}
 
 	return nil, fmt.Errorf("not found args type sign for %v", args)
 }
 
-func (fun *Function) Overload(functor ...Functor) error {
-	fun.content = append(functor, fun.content...)
+func (fun *Function) Overload(functor Functor) error {
+	fun.content = append([]Functor{functor}, fun.content...)
 	return nil
 }
 
 func (fun Function) Content() []Functor {
 	return fun.content
-}
-
-func Defun(env Env, funName Atom, functor Functor) (*Function, error) {
-	fun := Function{funName, env, []Functor{functor}}
-	err := env.Defun(&fun)
-	return &fun, err
 }
 
 func DefunExpr(env Env) Element {
@@ -81,9 +100,9 @@ func DefunExpr(env Env) Element {
 				return nil, fmt.Errorf("%v is defined as no Expr", funName.Name)
 			}
 		} else {
-			ret, err := Defun(env, funName, *lambda)
+			err := env.Defun(funName.Name, *lambda)
 			if err == nil {
-				return *ret, nil
+				return nil, nil
 			} else {
 				return nil, err
 			}

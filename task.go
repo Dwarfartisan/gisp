@@ -88,12 +88,11 @@ func (task Task) Defvar(name string, slot Var) error {
 }
 
 // Defun 实现 Env.Defun
-func (task Task) Defun(fun Func) error {
-	name := fun.Name()
+func (task Task) Defun(name string, functor Functor) error {
 	if s, ok := task.Local(name); ok {
 		switch slot := s.(type) {
 		case Func:
-			slot.Overload(fun.Content()...)
+			slot.Overload(functor)
 		case Var:
 			return fmt.Errorf("%s defined as a var", name)
 		default:
@@ -101,7 +100,7 @@ func (task Task) Defun(fun Func) error {
 		}
 	}
 	my := task.Meta["my"].(map[string]interface{})
-	my[name] = fun
+	my[name] = NewFunction(name, task, functor)
 	return nil
 }
 

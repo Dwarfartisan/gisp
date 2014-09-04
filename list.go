@@ -2,6 +2,7 @@ package gisp
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -36,6 +37,10 @@ func (list List) Eval(env Env) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+	case Func:
+		lisp = fun
+	case Expr:
+		lisp = fun
 	}
 	switch item := lisp.(type) {
 	case Expr:
@@ -50,7 +55,7 @@ func (list List) Eval(env Env) (interface{}, error) {
 			return nil, err
 		}
 		return lisp.Eval(env)
-	case Function:
+	case Func:
 		lisp, err := item.Task(list[1:]...)
 		if err != nil {
 			return nil, err
@@ -59,7 +64,7 @@ func (list List) Eval(env Env) (interface{}, error) {
 	case Let:
 		return item.Eval(env)
 	default:
-		return nil, fmt.Errorf("%v:%t is't callable", list[0], list[0])
+		return nil, fmt.Errorf("%v:%v is't callable", list[0], reflect.TypeOf(list[0]))
 	}
 
 }

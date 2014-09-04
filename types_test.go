@@ -27,9 +27,9 @@ func TestTypeInt(t *testing.T) {
 }
 
 func TestTypeFloat(t *testing.T) {
-	var f float64 = 0.0
+	var f Float = 0.0
 	if !reflect.DeepEqual(reflect.TypeOf(f), FLOAT) {
-		t.Fatalf("except %v equal float64 reflect type.", FLOAT)
+		t.Fatalf("except %v equal Float reflect type.", FLOAT)
 	}
 }
 

@@ -45,12 +45,11 @@ func (let Let) Defvar(name string, slot Var) error {
 }
 
 // Defun 实现 Env.Defun
-func (let Let) Defun(fun Func) error {
-	name := fun.Name()
+func (let Let) Defun(name string, functor Functor) error {
 	if s, ok := let.Local(name); ok {
 		switch slot := s.(type) {
 		case Func:
-			slot.Overload(fun.Content()...)
+			slot.Overload(functor)
 		case Var:
 			return fmt.Errorf("%s defined as a var", name)
 		default:
@@ -58,7 +57,7 @@ func (let Let) Defun(fun Func) error {
 		}
 	}
 	local := let.Meta["local"].(map[string]interface{})
-	local[name] = fun
+	local[name] = NewFunction(name, let, functor)
 	return nil
 }
 

@@ -33,24 +33,27 @@ func (gisp Gisp) Defvar(name string, slot Var) error {
 }
 
 // Defun 实现 Env.Defun
-func (gisp Gisp) Defun(fun Func) error {
-	name := fun.Name()
+func (gisp *Gisp) Defun(name string, functor Functor) error {
 	if s, ok := gisp.Local(name); ok {
 		switch slot := s.(type) {
 		case Func:
-			slot.Overload(fun.Content()...)
+			slot.Overload(functor)
 		case Var:
 			return fmt.Errorf("%s defined as a var")
 		default:
 			return fmt.Errorf("exists name %s isn't Expr", name)
 		}
 	}
-	gisp.Content[name] = fun
+	gisp.Content[name] = &Function{
+		Atom{name, Type{ANY, false}},
+		gisp,
+		[]Functor{functor},
+	}
 	return nil
 }
 
 // Set 实现 Env.Set 接口
-func (gisp Gisp) Setvar(name string, value interface{}) error {
+func (gisp *Gisp) Setvar(name string, value interface{}) error {
 	if s, ok := gisp.Content[name]; ok {
 		switch slot := s.(type) {
 		case Var:
@@ -75,10 +78,10 @@ func (gisp Gisp) Local(name string) (interface{}, bool) {
 }
 
 func (gisp Gisp) Lookup(name string) (interface{}, bool) {
-	if value, ok := gisp.Global(name); ok {
+	if value, ok := gisp.Local(name); ok {
 		return value, true
 	} else {
-		return gisp.Local(name)
+		return gisp.Global(name)
 	}
 }
 
@@ -93,7 +96,7 @@ func (gisp Gisp) Global(name string) (interface{}, bool) {
 	return nil, false
 }
 
-func (gisp Gisp) Parse(code string) (interface{}, error) {
+func (gisp *Gisp) Parse(code string) (interface{}, error) {
 	st := p.MemoryParseState(code)
 
 	value, err := ValueParser(st)
@@ -108,7 +111,7 @@ func (gisp Gisp) Parse(code string) (interface{}, error) {
 	}
 }
 
-func (gisp Gisp) Eval(lisps ...interface{}) (interface{}, error) {
+func (gisp *Gisp) Eval(lisps ...interface{}) (interface{}, error) {
 	var ret interface{}
 	var err error
 	for _, l := range lisps {

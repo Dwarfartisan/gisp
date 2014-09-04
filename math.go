@@ -166,18 +166,20 @@ func subx(st px.ParsexState) (interface{}, error) {
 
 // mulx 实现一个 parsex 累乘解析器，精度向上适配。
 func mulx(st px.ParsexState) (interface{}, error) {
-	ints, err := px.Try(px.ManyTil(IntValue, px.Eof))(st)
+	data, err := px.Try(px.ManyTil(IntValue, px.Eof))(st)
 	if err == nil {
-		root := Int(0)
-		for _, x := range ints.([]interface{}) {
+		ints := data.([]interface{})
+		root := ints[0].(Int)
+		for _, x := range ints[1:] {
 			root *= x.(Int)
 		}
 		return root, nil
 	}
-	numbers, err := px.ManyTil(NumberValue, px.Eof)(st)
+	data, err = px.ManyTil(NumberValue, px.Eof)(st)
 	if err == nil {
-		root := Float(0)
-		for _, x := range numbers.([]interface{}) {
+		numbers := data.([]interface{})
+		root := numbers[0].(Float)
+		for _, x := range numbers[1:] {
 			root *= x.(Float)
 		}
 		return root, nil
