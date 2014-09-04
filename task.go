@@ -111,7 +111,7 @@ func (task Task) Eval(env Env) (interface{}, error) {
 	for idx, atom := range formals {
 		formal := atom.(Atom)
 		slot := VarSlot(formal.Type)
-		val, err := eval(task, actuals[idx])
+		val, err := Eval(task, actuals[idx])
 		if err != nil {
 			return nil, err
 		}
@@ -126,14 +126,14 @@ func (task Task) Eval(env Env) (interface{}, error) {
 	case 0:
 		return nil, nil
 	case 1:
-		return eval(task, task.Content[0])
+		return Eval(task, task.Content[0])
 	default:
 		for _, Expr := range task.Content[:l-2] {
-			_, err := eval(task, Expr)
+			_, err := Eval(task, Expr)
 			if err != nil {
 				return nil, err
 			}
 		}
-		return eval(task, task.Content[l-1])
+		return Eval(task, task.Content[l-1])
 	}
 }

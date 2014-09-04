@@ -25,7 +25,7 @@ var Axiom = Toolkit{
 					err := env.Defvar(first.Name, slot)
 					return nil, err
 				}
-				value, err := eval(env, args[1])
+				value, err := Eval(env, args[1])
 				if err != nil {
 					return nil, err
 				}
@@ -36,7 +36,7 @@ var Axiom = Toolkit{
 		},
 		"set": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
-				value, err := eval(env, args[1])
+				value, err := Eval(env, args[1])
 				if err != nil {
 					return nil, err
 				}
@@ -50,11 +50,11 @@ var Axiom = Toolkit{
 		},
 		"equal": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
-				x, err := eval(env, args[0])
+				x, err := Eval(env, args[0])
 				if err != nil {
 					return nil, err
 				}
-				y, err := eval(env, args[1])
+				y, err := Eval(env, args[1])
 				if err != nil {
 					return nil, err
 				}
@@ -75,17 +75,17 @@ var Axiom = Toolkit{
 				for _, b := range cases { // FIXME: need a else
 					branch := b.([]interface{})
 					cond := branch[0].(List)
-					result, err := eval(env, cond)
+					result, err := Eval(env, cond)
 					if err != nil {
 						return nil, err
 					}
 					if ok := result.(bool); ok {
-						return eval(env, branch[1])
+						return Eval(env, branch[1])
 					}
 				}
 				// else branch
 				if els != nil {
-					return eval(env, els)
+					return Eval(env, els)
 				}
 				return nil, nil
 			}
@@ -93,7 +93,7 @@ var Axiom = Toolkit{
 		"car": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				// FIXME: out range error
-				lisp, err := eval(env, args[0])
+				lisp, err := Eval(env, args[0])
 				if err != nil {
 					return nil, err
 				}
@@ -103,7 +103,7 @@ var Axiom = Toolkit{
 		"cdr": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
 				// FIXME: out range error
-				lisp, err := eval(env, args[0])
+				lisp, err := Eval(env, args[0])
 				if err != nil {
 					return nil, err
 				}

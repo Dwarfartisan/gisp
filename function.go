@@ -20,18 +20,12 @@ type Func interface {
 	Content() []Functor
 }
 
-type ExprFunctor struct {
-	eval func(env Env) (interface{}, error)
+type TaskBox struct {
+	task func(env Env) (interface{}, error)
 }
 
-func ExprFunc(expr Expr, args ...interface{}) Lisp {
-	return &ExprFunctor{eval: func(env Env) (interface{}, error) {
-		return expr(env)(args...)
-	}}
-}
-
-func (ef *ExprFunctor) Eval(env Env) (interface{}, error) {
-	return ef.eval(env)
+func (tb TaskBox) Eval(env Env) (interface{}, error) {
+	return tb.task(env)
 }
 
 type Function struct {
@@ -52,9 +46,9 @@ func (fun Function) Name() string {
 	return fun.atom.Name
 }
 
-func (fun Function) Task(args ...interface{}) (Lisp, error) {
+func (fun Function) Task(env Env, args ...interface{}) (Lisp, error) {
 	for _, functor := range fun.content {
-		task, err := functor.Task(args...)
+		task, err := functor.Task(env, args...)
 		if err == nil {
 			return task, nil
 		}
@@ -62,9 +56,11 @@ func (fun Function) Task(args ...interface{}) (Lisp, error) {
 	if f, ok := fun.Global.Global(fun.Name()); ok {
 		switch foo := f.(type) {
 		case Func:
-			return foo.Task(args...)
+			return foo.Task(env, args...)
 		case Expr:
-			return ExprFunc(foo, args...), nil
+			return TaskBox{func(env Env) (interface{}, error) {
+				return foo(env)(args...)
+			}}, nil
 		}
 	}
 

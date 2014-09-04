@@ -19,7 +19,7 @@ func LetExpr(env Env) Element {
 			declares := v.(List)
 			varb := declares[0].(Atom)
 			slot := VarSlot(varb.Type)
-			value, err := eval(env, (declares[1]))
+			value, err := Eval(env, (declares[1]))
 			if err != nil {
 				return nil, err
 			}
@@ -102,12 +102,12 @@ func (let Let) Eval(env Env) (interface{}, error) {
 	case 0:
 		return nil, nil
 	case 1:
-		return eval(let, let.Content[0])
+		return Eval(let, let.Content[0])
 	default:
 		for _, Expr := range let.Content[:l-2] {
-			eval(let, Expr)
+			Eval(let, Expr)
 		}
 		Expr := let.Content[l-1]
-		return eval(let, Expr)
+		return Eval(let, Expr)
 	}
 }

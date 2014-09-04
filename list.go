@@ -50,13 +50,13 @@ func (list List) Eval(env Env) (interface{}, error) {
 	case Go:
 		return item.Eval(env)
 	case Lambda:
-		lisp, err := item.Task(list[1:]...)
+		lisp, err := item.Task(env, list[1:]...)
 		if err != nil {
 			return nil, err
 		}
 		return lisp.Eval(env)
 	case Func:
-		lisp, err := item.Task(list[1:]...)
+		lisp, err := item.Task(env, list[1:]...)
 		if err != nil {
 			return nil, err
 		}

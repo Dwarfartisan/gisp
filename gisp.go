@@ -5,7 +5,7 @@ type Lisp interface {
 }
 
 type Functor interface {
-	Task(args ...interface{}) (Lisp, error)
+	Task(env Env, args ...interface{}) (Lisp, error)
 }
 
 type Toolbox interface {

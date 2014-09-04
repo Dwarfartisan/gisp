@@ -19,19 +19,11 @@ func (m money) EqualTo(x money) bool {
 	return m.Amount == x.Amount && m.Currency == x.Currency
 }
 
-type moneyMulti struct {
+type mrMul struct {
+	argsParser px.Parser
 }
 
-func (mm moneyMulti) Task(args ...interface{}) (Lisp, error) {
-	err := mmSignChecker(args...)
-	if err != nil {
-		return nil, err
-	}
-	return mrMul{args[0], args[1:]}, nil
-}
-
-func mmSignChecker(args ...interface{}) error {
-	st := px.NewStateInMemory(args)
+func mrmul() mrMul {
 	mchecker := func(st px.ParsexState) (interface{}, error) {
 		x, err := st.Next(px.Always)
 		if err != nil {
@@ -39,13 +31,7 @@ func mmSignChecker(args ...interface{}) error {
 		}
 		switch m := x.(type) {
 		case money:
-			return nil, nil
-		case Atom:
-			if m.Type.Type == ANY {
-				return nil, nil
-			} else {
-				return nil, moneySignError(m)
-			}
+			return m, nil
 		default:
 			return nil, moneySignError(x)
 		}
@@ -57,39 +43,32 @@ func mmSignChecker(args ...interface{}) error {
 		}
 		switch f := x.(type) {
 		case Float:
-			return nil, nil
-		case Atom:
-			if f.Type.Type == FLOAT {
-				return nil, nil
-			} else {
-				return nil, floatSignError(f)
-			}
+			return f, nil
 		default:
 			return nil, floatSignError(x)
 		}
 	}
-	_, err := px.Binds_(mchecker, px.Many1(fchecker), px.Eof)(st)
-	return err
+	return mrMul{px.Union(mchecker, px.Many1(fchecker), px.Eof)}
 }
 
-type mrMul struct {
-	m  interface{}
-	rs []interface{}
-}
-
-func (mrm mrMul) Eval(env Env) (interface{}, error) {
-	m, err := eval(env, mrm.m)
+func (mrm mrMul) Task(env Env, args ...interface{}) (Lisp, error) {
+	params, err := Evals(env, args...)
 	if err != nil {
 		return nil, err
 	}
-	for _, r := range mrm.rs {
-		f, err := eval(env, r)
-		if err != nil {
-			return nil, err
-		}
-		m = m.(money).Mul(f.(Float))
+	st := px.NewStateInMemory(params)
+	data, err := mrm.argsParser(st)
+	if err != nil {
+		return nil, err
 	}
-	return m, nil
+	return TaskBox{func(env Env) (interface{}, error) {
+		vals := data.([]interface{})
+		m := vals[0].(money)
+		for _, r := range vals[1].([]interface{}) {
+			m = m.Mul(r.(Float))
+		}
+		return m, nil
+	}}, nil
 }
 
 func moneySignError(value interface{}) error {
@@ -111,13 +90,13 @@ func TestMoneyMul(t *testing.T) {
 	if err != nil {
 		t.Fatalf("except gisp parser but %v", err)
 	}
-	g.Defun("*", moneyMulti{})
+	g.Defun("*", mrmul())
 	mulx, ok := g.Lookup("*")
 	if !ok {
 		t.Fatalf("except got overloaded function *")
 	}
 
-	ret, err := g.Eval(List{mulx, in, Float(0.8)})
+	ret, err := g.Eval(List{mulx, in, ratio})
 	if err != nil {
 		t.Fatalf("except %v * %v is %v but error %v", in, ratio, out, err)
 	}
@@ -137,13 +116,13 @@ func TestMulAutoOverload(t *testing.T) {
 	if err != nil {
 		t.Fatalf("except gisp parser but %v", err)
 	}
-	g.Defun("*", moneyMulti{})
+	g.Defun("*", mrmul())
 	mulx, ok := g.Lookup("*")
 	if !ok {
 		t.Fatalf("except got overloaded function *")
 	}
 
-	ret, err := g.Eval(List{mulx, in, Float(0.8)})
+	ret, err := g.Eval(List{mulx, in, ratio})
 	if err != nil {
 		t.Fatalf("except %v * %v is %v but error %v", in, ratio, out, err)
 	}

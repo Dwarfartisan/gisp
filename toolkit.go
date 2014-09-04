@@ -32,7 +32,7 @@ func (tk Toolkit) Global(name string) (interface{}, bool) {
 	return nil, false
 }
 
-func eval(env Env, lisp interface{}) (interface{}, error) {
+func Eval(env Env, lisp interface{}) (interface{}, error) {
 	// a lisp data or go value
 	switch o := lisp.(type) {
 	case Lisp:
@@ -59,10 +59,10 @@ func eval(env Env, lisp interface{}) (interface{}, error) {
 	}
 }
 
-func evals(env Env, args ...interface{}) (interface{}, error) {
+func Evals(env Env, args ...interface{}) ([]interface{}, error) {
 	data := make([]interface{}, len(args))
 	for idx, arg := range args {
-		ret, err := eval(env, arg)
+		ret, err := Eval(env, arg)
 		if err != nil {
 			return nil, err
 		}

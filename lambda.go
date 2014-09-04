@@ -155,19 +155,27 @@ func (lambda Lambda) TypeSign() []Type {
 	return types
 }
 
-func (lambda Lambda) MatchArgsSign(args ...interface{}) (interface{}, error) {
+func (lambda Lambda) MatchArgsSign(env Env, args ...interface{}) (interface{}, error) {
+	params := make([]interface{}, len(args))
+	for idx, arg := range args {
+		param, err := Eval(env, arg)
+		if err != nil {
+			return nil, err
+		}
+		params[idx] = param
+	}
 	pxs := lambda.Meta["parameter parsexs"].([]px.Parser)
-	st := px.NewStateInMemory(args)
-	return px.Union(pxs...)(st)
+	st := px.NewStateInMemory(params)
+	return px.UnionAll(pxs...)(st)
 }
 
 // create a lambda s-Expr can be eval
-func (lambda Lambda) Task(args ...interface{}) (Lisp, error) {
+func (lambda Lambda) Task(env Env, args ...interface{}) (Lisp, error) {
 	meta := map[string]interface{}{}
 	for k, v := range lambda.Meta {
 		meta[k] = v
 	}
-	actuals, err := lambda.MatchArgsSign(args...)
+	actuals, err := lambda.MatchArgsSign(env, args...)
 	if err != nil {
 		return Nil{}, err
 	}
