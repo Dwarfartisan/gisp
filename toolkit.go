@@ -1,5 +1,10 @@
 package gisp
 
+import (
+	//"fmt"
+	"reflect"
+)
+
 // Toolkit 实现了一个基本环境，它没有 Define 和 Set ，用于封装只读的环境。
 type Toolkit struct {
 	Meta    map[string]interface{}
@@ -52,6 +57,8 @@ func Eval(env Env, lisp interface{}) (interface{}, error) {
 		return Int(o), nil
 	case int64:
 		return Int(o), nil
+	case int:
+		return Int(o), nil
 	case Float, Int, Bool, nil:
 		return o, nil
 	default:
@@ -69,4 +76,19 @@ func Evals(env Env, args ...interface{}) ([]interface{}, error) {
 		data[idx] = ret
 	}
 	return data, nil
+}
+
+func InReflects(values []reflect.Value) ([]interface{}, error) {
+	res := make([]interface{}, len(values))
+	for idx, value := range values {
+		if value.CanInterface() {
+			res[idx] = value.Interface()
+		}
+		if !value.IsValid() || value.Kind() == reflect.Ptr && value.IsNil() {
+			res[idx] = nil
+		}
+		res[idx] = value.Interface()
+		//return nil, fmt.Errorf("Unkonw howto got the interface{} from %v", value)
+	}
+	return res, nil
 }

@@ -60,7 +60,7 @@ func TestGetEval(t *testing.T) {
 	if err != nil {
 		t.Fatalf("except var pi as 3.14 but error: %v", err)
 	}
-	pi, err := gisp.Eval(Atom{"pi", Type{FLOAT, false}})
+	pi, err := gisp.Eval(Atom{"pi", FLOATMUST})
 	if err != nil {
 		t.Fatalf("except got pi is 3.14 but error: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestVarEval(t *testing.T) {
 	if err != nil {
 		t.Fatalf("except var pi as 3.14 but error: %v", err)
 	}
-	pi, err := gisp.Eval(Atom{"pi", Type{FLOAT, false}})
+	pi, err := gisp.Eval(Atom{"pi", FLOATMUST})
 	if err != nil {
 		t.Fatalf("except got pi is 3.14 but error: %v", err)
 	}

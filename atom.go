@@ -11,6 +11,11 @@ type Atom struct {
 	Type Type
 }
 
+// AA 构造一个指定命名的Atom，类型为 ANYOPTION
+func AA(name string) Atom {
+	return Atom{Name: name, Type: ANYOPTION}
+}
+
 func (atom Atom) String() string {
 	return fmt.Sprintf("%v::%v", atom.Name, atom.Type)
 }
@@ -31,9 +36,22 @@ func (atom Atom) Eval(env Env) (interface{}, error) {
 	return nil, fmt.Errorf("value of atom %s not found", atom.Name)
 }
 
-func AtomParser(st p.ParseState) (interface{}, error) {
-	a, err := p.Bind(p.Many1(p.NoneOf("'() \t\r\n.:")),
+func atomNameParser(st p.ParseState) (interface{}, error) {
+	ret, err := p.Bind(p.Many1(p.NoneOf("'() \t\r\n.:")),
 		p.ReturnString)(st)
+	if err != nil {
+		return nil, err
+	}
+	test := p.MemoryParseState(ret.(string))
+	_, err = p.Bind_(p.Many1(p.OneOf("0123456789")), p.Eof)(test)
+	if err == nil {
+		return nil, fmt.Errorf("atom name can't be a int like %s", ret.(string))
+	}
+	return ret, nil
+}
+
+func AtomParser(st p.ParseState) (interface{}, error) {
+	a, err := atomNameParser(st)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +59,6 @@ func AtomParser(st p.ParseState) (interface{}, error) {
 	if err == nil {
 		return Atom{a.(string), t.(Type)}, nil
 	} else {
-		return Atom{a.(string), Type{ANY, false}}, nil
+		return Atom{a.(string), ANYMUST}, nil
 	}
 }

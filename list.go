@@ -41,6 +41,8 @@ func (list List) Eval(env Env) (interface{}, error) {
 		lisp = fun
 	case Expr:
 		lisp = fun
+	case Dot:
+		lisp = fun
 	}
 	switch item := lisp.(type) {
 	case Expr:
@@ -63,8 +65,36 @@ func (list List) Eval(env Env) (interface{}, error) {
 		return lisp.Eval(env)
 	case Let:
 		return item.Eval(env)
-	default:
-		return nil, fmt.Errorf("%v:%v is't callable", list[0], reflect.TypeOf(list[0]))
-	}
+	case Dot:
+		v, err := item.Eval(env)
+		value := v.(reflect.Value)
+		if err != nil {
+			return nil, err
+		}
+		if value.Kind() == reflect.Func {
+			args, err := Evals(env, list[1:]...)
+			if err != nil {
+				return nil, err
+			}
+			values := make([]reflect.Value, len(args))
+			for idx, arg := range args {
+				args[idx] = reflect.ValueOf(arg)
+			}
+			res, err := InReflects(value.Call(values))
+			if err != nil {
+				return nil, err
+			}
+			data, err := Evals(env, res...)
+			if err != nil {
+				return nil, err
+			}
+			if len(data) == 1 {
+				return data[0], nil
+			} else {
+				return data, nil
+			}
+		}
 
+	}
+	return nil, fmt.Errorf("%v:%v is't callable", list[0], reflect.TypeOf(list[0]))
 }
