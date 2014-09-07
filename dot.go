@@ -33,32 +33,22 @@ func (dot Dot) Eval(env Env) (interface{}, error) {
 		return nil, err
 	}
 	obj := reflect.ValueOf(first)
-	if obj.Kind() != reflect.Struct {
-		return nil, NotStructError{first}
-	}
-	data := make(List, len(dot))
-	data[0] = obj
-	for idx, item := range dot[1:] {
-		data[idx+1] = item
-	}
-	return dot.eval(env, data)
+
+	return dot.eval(env, obj, dot[1:])
 }
 
-func (dot Dot) eval(env Env, data List) (interface{}, error) {
-	if len(data) == 1 {
-		return data[0], nil
+func (dot Dot) eval(env Env, obj reflect.Value, names Dot) (interface{}, error) {
+	if len(names) == 0 {
+		return obj, nil
 	}
-	name := dot[1].Name
-	obj := data[0].(reflect.Value)
-	if field := obj.FieldByName(name); field.IsValid() {
-		next := field
-		d := append(List{next}, data[2:]...)
-		return dot.eval(env, d)
+	name := names[0].Name
+	if obj.Kind() == reflect.Struct {
+		if field := obj.FieldByName(name); field.IsValid() {
+			return dot.eval(env, field, names[1:])
+		}
 	}
 	if method := obj.MethodByName(name); method.IsValid() {
-		next := method
-		d := append(List{next}, data[2:]...)
-		return dot.eval(env, d)
+		return dot.eval(env, method, names[1:])
 	}
 	return nil, NameInvalid{name}
 }

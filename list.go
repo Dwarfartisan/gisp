@@ -78,7 +78,7 @@ func (list List) Eval(env Env) (interface{}, error) {
 			}
 			values := make([]reflect.Value, len(args))
 			for idx, arg := range args {
-				args[idx] = reflect.ValueOf(arg)
+				values[idx] = reflect.ValueOf(arg)
 			}
 			res, err := InReflects(value.Call(values))
 			if err != nil {
