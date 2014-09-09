@@ -22,22 +22,25 @@ func (err NameInvalid) Error() string {
 	return fmt.Sprintf("name %s is invalid", err.Name)
 }
 
-type Dot []Atom
+type Dot struct {
+	obj  interface{}
+	expr []Atom
+}
 
 func (dot Dot) Eval(env Env) (interface{}, error) {
-	if len(dot) < 2 {
+	if len(dot.expr) < 1 {
 		return nil, fmt.Errorf("The dot %v too short.", dot)
 	}
-	first, err := Eval(env, dot[0])
+	obj, err := Eval(env, dot.obj)
 	if err != nil {
 		return nil, err
 	}
-	obj := reflect.ValueOf(first)
+	val := reflect.ValueOf(obj)
 
-	return dot.eval(env, obj, dot[1:])
+	return dot.eval(env, val, dot.expr)
 }
 
-func (dot Dot) eval(env Env, obj reflect.Value, names Dot) (interface{}, error) {
+func (dot Dot) eval(env Env, obj reflect.Value, names []Atom) (interface{}, error) {
 	if len(names) == 0 {
 		return obj, nil
 	}
@@ -54,17 +57,14 @@ func (dot Dot) eval(env Env, obj reflect.Value, names Dot) (interface{}, error) 
 }
 
 func DotParser(st p.ParseState) (interface{}, error) {
-	data, err := p.SepBy1(atomNameParser, p.Rune('.'))(st)
+	data, err := p.Many1(p.Bind_(p.Rune('.'), atomNameParser))(st)
 	if err != nil {
 		return nil, err
 	}
 	tokens := data.([]interface{})
-	if len(tokens) == 1 {
-		return nil, fmt.Errorf("dot expression except . at last but %v", data)
-	}
-	dot := make(Dot, len(tokens))
+	expr := make([]Atom, len(tokens))
 	for idx, name := range tokens {
-		dot[idx] = AA(name.(string))
+		expr[idx] = AA(name.(string))
 	}
-	return dot, nil
+	return expr, nil
 }

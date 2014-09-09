@@ -43,7 +43,7 @@ func atomNameParser(st p.ParseState) (interface{}, error) {
 		return nil, err
 	}
 	test := p.MemoryParseState(ret.(string))
-	_, err = p.Bind_(p.Many1(p.OneOf("0123456789")), p.Eof)(test)
+	_, err = p.Bind_(p.Many1(p.Digit), p.Eof)(test)
 	if err == nil {
 		return nil, fmt.Errorf("atom name can't be a int like %s", ret.(string))
 	}

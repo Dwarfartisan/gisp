@@ -67,10 +67,10 @@ func (list List) Eval(env Env) (interface{}, error) {
 		return item.Eval(env)
 	case Dot:
 		v, err := item.Eval(env)
-		value := v.(reflect.Value)
 		if err != nil {
 			return nil, err
 		}
+		value := v.(reflect.Value)
 		if value.Kind() == reflect.Func {
 			args, err := Evals(env, list[1:]...)
 			if err != nil {

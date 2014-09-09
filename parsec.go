@@ -92,8 +92,10 @@ func ValueParser(st p.ParseState) (interface{}, error) {
 		p.Try(StringParser),
 		p.Try(BoolParser),
 		p.Try(NilParser),
-		p.Try(DotParser),
-		p.Try(AtomParser),
-		ListParser)(st)
+		// p.Try(AtomParser),
+		p.Try(p.Bind(AtomParser, DotSuffixParser)),
+		// ListParser,
+		p.Bind(ListParser, SuffixParser),
+	)(st)
 	return value, err
 }

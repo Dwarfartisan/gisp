@@ -30,7 +30,7 @@ func TestDotTime(t *testing.T) {
 func TestDotParser(t *testing.T) {
 	data := "now.Year"
 	st := p.MemoryParseState(data)
-	re, err := DotParser(st)
+	re, err := p.Bind(AtomParser, DotSuffixParser)(st)
 	if err != nil {
 		t.Fatalf("except a Dot but error %v", err)
 	}
