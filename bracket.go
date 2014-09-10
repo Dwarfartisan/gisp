@@ -33,7 +33,8 @@ func (bracket Bracket) Eval(env Env) (interface{}, error) {
 	case reflect.Map:
 		if len(bracket.expr) == 1 {
 			key := reflect.ValueOf(bracket.expr[0])
-			return val.MapIndex(key).Interface(), nil
+			v := val.MapIndex(key)
+			return bracket.inter(v), nil
 		}
 		return nil, fmt.Errorf("Unknow howto parse map %v[%v]",
 			bracket.obj, bracket.expr)
@@ -42,13 +43,21 @@ func (bracket Bracket) Eval(env Env) (interface{}, error) {
 		bracket.obj, bracket.expr)
 }
 
+func (bracket Bracket) inter(value reflect.Value) interface{} {
+	if value.IsValid() {
+		return value.Interface()
+	}
+	return nil
+}
+
 func (bracket Bracket) evalIndex(env Env, val reflect.Value) (interface{}, error) {
 	i, err := Eval(env, bracket.expr[0])
 	if err != nil {
 		return nil, err
 	}
 	if idx, ok := i.(Int); ok {
-		return val.Index(int(idx)).Interface(), nil
+		v := val.Index(int(idx))
+		return bracket.inter(v), nil
 	}
 	return nil, fmt.Errorf("Index for slice %v[%v]  is invalid data: %v",
 		bracket.obj, bracket.expr, i)
@@ -65,9 +74,11 @@ func (bracket Bracket) evalSlice(env Env, val reflect.Value) (interface{}, error
 	}
 	switch len(indexs) {
 	case 2:
-		return val.Slice(indexs[0], indexs[1]).Interface(), nil
+		v := val.Slice(indexs[0], indexs[1])
+		return bracket.inter(v), nil
 	case 3:
-		return val.Slice3(indexs[0], indexs[1], indexs[2]).Interface(), nil
+		v := val.Slice3(indexs[0], indexs[1], indexs[2])
+		return bracket.inter(v), nil
 	}
 
 	return nil, fmt.Errorf("Index for slice %v[%v]  is invalid",
