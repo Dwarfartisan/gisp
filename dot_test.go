@@ -5,16 +5,16 @@ import (
 	p "github.com/Dwarfartisan/goparsec"
 	"reflect"
 	"testing"
-	"time"
+	tm "time"
 )
 
 func TestDotTime(t *testing.T) {
-	now := time.Now()
+	now := tm.Now()
 	g, _ := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 		"props":  Propositions,
 	})
-	slot := VarSlot(ANYOPTION)
+	slot := VarSlot(TIMEOPTION)
 	slot.Set(now)
 	g.Defvar("now", slot)
 	year := Int(now.Year())

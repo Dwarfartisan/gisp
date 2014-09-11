@@ -30,6 +30,8 @@ func TypeParser(st p.ParseState) (interface{}, error) {
 			p.Bind_(p.String("float"), p.Return(FLOAT)),
 			p.Bind_(p.String("int"), p.Return(INT)),
 			p.Bind_(p.String("string"), p.Return(STRING)),
+			p.Bind_(p.String("time"), p.Return(TIME)),
+			p.Bind_(p.String("duration"), p.Return(DURATION)),
 			p.Bind_(p.String("any"), p.Return(ANY)),
 			p.Bind_(p.String("atom"), p.Return(ATOM)),
 			p.Bind_(p.String("quote"), p.Return(QUOTE)),
