@@ -14,6 +14,7 @@ var (
 	DURATION = reflect.TypeOf((*t.Duration)(nil)).Elem()
 	ANY      = reflect.TypeOf((*interface{})(nil)).Elem()
 	ATOM     = reflect.TypeOf((*Atom)(nil)).Elem()
+	LIST     = reflect.TypeOf((*List)(nil)).Elem()
 	QUOTE    = reflect.TypeOf((*Quote)(nil)).Elem()
 
 	BOOLOPTION     = Type{BOOL, true}
@@ -24,6 +25,7 @@ var (
 	DURATIONOPTION = Type{DURATION, true}
 	ANYOPTION      = Type{ANY, true}
 	ATOMOPTION     = Type{ATOM, true}
+	LISTOPTION     = Type{LIST, true}
 	QUOTEOPTION    = Type{QUOTE, true}
 
 	BOOLMUST     = Type{BOOL, false}
@@ -34,5 +36,6 @@ var (
 	DURATIONMUST = Type{DURATION, false}
 	ANYMUST      = Type{ANY, false}
 	ATOMMUST     = Type{ATOM, false}
+	LISTMUST     = Type{LIST, false}
 	QUOTEMUST    = Type{QUOTE, false}
 )

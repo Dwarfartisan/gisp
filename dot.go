@@ -47,6 +47,9 @@ func (dot Dot) eval(env Env, root interface{}, names []Atom) (interface{}, error
 	case Toolkit:
 		return dot.evalToolkit(env, obj, names)
 	case reflect.Value:
+		if obj.Type() == reflect.TypeOf((*Toolkit)(nil)).Elem() && obj.IsValid() {
+			return dot.evalToolkit(env, obj.Interface().(Toolkit), names)
+		}
 		return dot.evalValue(env, obj, names)
 	default:
 		val := reflect.ValueOf(obj)

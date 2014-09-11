@@ -1,6 +1,8 @@
 package gisp
 
 import (
+	"fmt"
+	px "github.com/Dwarfartisan/goparsec/parsex"
 	"reflect"
 )
 
@@ -50,6 +52,10 @@ var Axiom = Toolkit{
 		},
 		"equal": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
+				if len(args) != 2 {
+					return nil, fmt.Errorf("args error: equal need two args but only",
+						args)
+				}
 				x, err := Eval(env, args[0])
 				if err != nil {
 					return nil, err
@@ -92,21 +98,29 @@ var Axiom = Toolkit{
 		},
 		"car": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
-				// FIXME: out range error
-				lisp, err := Eval(env, args[0])
+				params, err := GetArgs(
+					env,
+					px.Binds_(TypeAs(LIST), px.Eof),
+					args,
+				)
 				if err != nil {
 					return nil, err
 				}
+				lisp := params[0]
 				return (lisp.(List))[0], nil
 			}
 		},
 		"cdr": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
-				// FIXME: out range error
-				lisp, err := Eval(env, args[0])
+				params, err := GetArgs(
+					env,
+					px.Binds_(TypeAs(LIST), px.Eof),
+					args,
+				)
 				if err != nil {
 					return nil, err
 				}
+				lisp := params[0]
 				return (lisp.(List))[1:], nil
 			}
 		},
