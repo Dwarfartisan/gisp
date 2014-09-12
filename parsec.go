@@ -83,6 +83,23 @@ func QuoteParser(st p.ParseState) (interface{}, error) {
 	}
 }
 
+func ValueParserExt(env Env) p.Parser {
+	return func(st p.ParseState) (interface{}, error) {
+		value, err := p.Choice(p.Try(StringParser),
+			p.Try(FloatParser),
+			p.Try(IntParser),
+			p.Try(QuoteParser),
+			p.Try(RuneParser),
+			p.Try(StringParser),
+			p.Try(BoolParser),
+			p.Try(NilParser),
+			p.Try(p.Bind(AtomParserExt(env), SuffixParser)),
+			p.Bind(ListParser, SuffixParser),
+		)(st)
+		return value, err
+	}
+}
+
 func ValueParser(st p.ParseState) (interface{}, error) {
 	value, err := p.Choice(p.Try(StringParser),
 		p.Try(FloatParser),
@@ -92,9 +109,7 @@ func ValueParser(st p.ParseState) (interface{}, error) {
 		p.Try(StringParser),
 		p.Try(BoolParser),
 		p.Try(NilParser),
-		// p.Try(AtomParser),
 		p.Try(p.Bind(AtomParser, SuffixParser)),
-		// ListParser,
 		p.Bind(ListParser, SuffixParser),
 	)(st)
 	return value, err

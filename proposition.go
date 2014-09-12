@@ -7,7 +7,7 @@ import (
 var Propositions Toolkit = Toolkit{
 	Meta: map[string]interface{}{
 		"name":     "propositions",
-		"category": "environment",
+		"category": "package",
 	},
 	Content: map[string]Expr{
 		"lambda": LambdaExpr,

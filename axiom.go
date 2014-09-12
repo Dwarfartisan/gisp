@@ -11,7 +11,7 @@ import (
 var Axiom = Toolkit{
 	Meta: map[string]interface{}{
 		"name":     "axiom",
-		"category": "environment",
+		"category": "package",
 	},
 	Content: map[string]Expr{
 		"quote": func(env Env) Element {

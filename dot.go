@@ -45,10 +45,14 @@ func (dot Dot) eval(env Env, root interface{}, names []Atom) (interface{}, error
 	}
 	switch obj := root.(type) {
 	case Toolkit:
-		return dot.evalToolkit(env, obj, names)
+		return dot.evalToolbox(env, obj, names)
 	case reflect.Value:
-		if obj.Type() == reflect.TypeOf((*Toolkit)(nil)).Elem() && obj.IsValid() {
-			return dot.evalToolkit(env, obj.Interface().(Toolkit), names)
+		if obj.IsValid() {
+			inter := obj.Interface()
+			switch data := inter.(type) {
+			case Toolbox:
+				return dot.evalToolbox(env, data, names)
+			}
 		}
 		return dot.evalValue(env, obj, names)
 	default:
@@ -57,9 +61,9 @@ func (dot Dot) eval(env Env, root interface{}, names []Atom) (interface{}, error
 	}
 }
 
-func (dot Dot) evalToolkit(env Env, obj Toolkit, names []Atom) (interface{}, error) {
+func (dot Dot) evalToolbox(env Env, obj Toolbox, names []Atom) (interface{}, error) {
 	name := names[0].Name
-	if expr, ok := obj.Content[name]; ok {
+	if expr, ok := obj.Lookup(name); ok {
 		return dot.eval(env, expr, names[1:])
 	}
 	return nil, fmt.Errorf("Export expr %v from tookit %v but not found in dot %v.%v.",

@@ -39,3 +39,39 @@ var (
 	LISTMUST     = Type{LIST, false}
 	QUOTEMUST    = Type{QUOTE, false}
 )
+
+var TypeBox = Gearbox{
+	Meta: map[string]interface{}{
+		"category": "package",
+		"name":     "types",
+	},
+	Content: map[string]interface{}{
+		"int":       INT,
+		"int?":      INTOPTION,
+		"int!":      INTMUST,
+		"float":     FLOAT,
+		"float?":    FLOATOPTION,
+		"float!":    FLOATMUST,
+		"string":    STRING,
+		"string?":   STRINGOPTION,
+		"string!":   STRINGMUST,
+		"time":      TIME,
+		"time?":     TIMEOPTION,
+		"time!":     TIMEMUST,
+		"duration":  DURATION,
+		"duration?": DURATIONOPTION,
+		"duration!": DURATIONMUST,
+		"list":      LIST,
+		"list?":     LISTOPTION,
+		"list!":     LISTMUST,
+		"atom":      ATOM,
+		"atom?":     ATOMOPTION,
+		"atom!":     ATOMMUST,
+		"quote":     QUOTE,
+		"quote!":    QUOTEOPTION,
+		"quote?":    QUOTEMUST,
+		"any":       ANY,
+		"any?":      ANYOPTION,
+		"any!":      ANYMUST,
+	},
+}

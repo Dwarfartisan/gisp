@@ -99,7 +99,7 @@ func (gisp Gisp) Global(name string) (interface{}, bool) {
 func (gisp *Gisp) Parse(code string) (interface{}, error) {
 	st := p.MemoryParseState(code)
 
-	value, err := ValueParser(st)
+	value, err := ValueParserExt(gisp)(st)
 	if err != nil {
 		return nil, err
 	}

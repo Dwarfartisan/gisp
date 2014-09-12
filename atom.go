@@ -50,6 +50,21 @@ func atomNameParser(st p.ParseState) (interface{}, error) {
 	return ret, nil
 }
 
+func AtomParserExt(env Env) p.Parser {
+	return func(st p.ParseState) (interface{}, error) {
+		a, err := atomNameParser(st)
+		if err != nil {
+			return nil, err
+		}
+		t, err := p.Try(ExtTypeParser(env))(st)
+		if err == nil {
+			return Atom{a.(string), t.(Type)}, nil
+		} else {
+			return Atom{a.(string), ANYMUST}, nil
+		}
+	}
+}
+
 func AtomParser(st p.ParseState) (interface{}, error) {
 	a, err := atomNameParser(st)
 	if err != nil {
