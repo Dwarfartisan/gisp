@@ -1,7 +1,6 @@
 package gisp
 
 import (
-	"fmt"
 	p "github.com/Dwarfartisan/goparsec"
 	"reflect"
 )
@@ -40,13 +39,7 @@ func stop(st p.ParseState) (interface{}, error) {
 }
 
 func stopWord(x interface{}) p.Parser {
-	return func(st p.ParseState) (interface{}, error) {
-		_, err := stop(st)
-		if err == nil {
-			return x, nil
-		}
-		return nil, err
-	}
+	return p.Bind_(stop, p.Return(x))
 }
 
 func typeName(word string) p.Parser {
@@ -79,12 +72,12 @@ func ExtTypeParser(env Env) p.Parser {
 			}
 			t, ok := env.Lookup(n.(string))
 			if !ok {
-				return nil, fmt.Errorf("type %v not found", n)
+				return nil, st.Trap("type %v not found", n)
 			}
 			if typ, ok := t.(reflect.Type); ok {
 				return typ, nil
 			} else {
-				return nil, fmt.Errorf("var %v is't a type", n)
+				return nil, st.Trap("var %v is't a type. It is %v", n, reflect.TypeOf(t))
 			}
 		}
 		t, err := p.Either(buildin, ext)(st)

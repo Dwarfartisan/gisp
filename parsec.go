@@ -61,6 +61,13 @@ func bodyParser(st p.ParseState) (interface{}, error) {
 	return value, err
 }
 
+func bodyParserExt(env Env) p.Parser {
+	return func(st p.ParseState) (interface{}, error) {
+		value, err := p.SepBy(ValueParserExt(env), p.Many1(p.Space))(st)
+		return value, err
+	}
+}
+
 func ListParser(st p.ParseState) (interface{}, error) {
 	one := p.Bind(AtomParser, func(atom interface{}) p.Parser {
 		return p.Bind_(p.Rune(')'), p.Return(List{atom}))
@@ -74,6 +81,21 @@ func ListParser(st p.ParseState) (interface{}, error) {
 	}
 }
 
+func ListParserExt(env Env) p.Parser {
+	return func(st p.ParseState) (interface{}, error) {
+		one := p.Bind(AtomParserExt(env), func(atom interface{}) p.Parser {
+			return p.Bind_(p.Rune(')'), p.Return(List{atom}))
+		})
+		list, err := p.Either(p.Try(p.Bind_(p.Rune('('), one)),
+			p.Between(p.Rune('('), p.Rune(')'), bodyParserExt(env)))(st)
+		if err == nil {
+			return List(list.([]interface{})), nil
+		} else {
+			return nil, err
+		}
+	}
+}
+
 func QuoteParser(st p.ParseState) (interface{}, error) {
 	lisp, err := p.Bind_(p.Rune('\''), ValueParser)(st)
 	if err == nil {
@@ -83,20 +105,14 @@ func QuoteParser(st p.ParseState) (interface{}, error) {
 	}
 }
 
-func ValueParserExt(env Env) p.Parser {
+func QuoteParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
-		value, err := p.Choice(p.Try(StringParser),
-			p.Try(FloatParser),
-			p.Try(IntParser),
-			p.Try(QuoteParser),
-			p.Try(RuneParser),
-			p.Try(StringParser),
-			p.Try(BoolParser),
-			p.Try(NilParser),
-			p.Try(p.Bind(AtomParserExt(env), SuffixParser)),
-			p.Bind(ListParser, SuffixParser),
-		)(st)
-		return value, err
+		lisp, err := p.Bind_(p.Rune('\''), ValueParserExt(env))(st)
+		if err == nil {
+			return Quote{lisp}, nil
+		} else {
+			return nil, err
+		}
 	}
 }
 
@@ -113,4 +129,21 @@ func ValueParser(st p.ParseState) (interface{}, error) {
 		p.Bind(ListParser, SuffixParser),
 	)(st)
 	return value, err
+}
+
+func ValueParserExt(env Env) p.Parser {
+	return func(st p.ParseState) (interface{}, error) {
+		value, err := p.Choice(p.Try(StringParser),
+			p.Try(FloatParser),
+			p.Try(IntParser),
+			p.Try(QuoteParser),
+			p.Try(RuneParser),
+			p.Try(StringParser),
+			p.Try(BoolParser),
+			p.Try(NilParser),
+			p.Try(p.Bind(AtomParserExt(env), SuffixParser)),
+			p.Bind(ListParserExt(env), SuffixParser),
+		)(st)
+		return value, err
+	}
 }

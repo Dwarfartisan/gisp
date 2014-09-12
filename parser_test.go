@@ -28,5 +28,4 @@ func TestParseFloat(t *testing.T) {
 	if ret.(Float) != Float(3.14) {
 		t.Fatalf("except got Float(3.14) but %v", ret)
 	}
-
 }

@@ -88,7 +88,6 @@ func InReflects(values []reflect.Value) ([]interface{}, error) {
 			res[idx] = nil
 		}
 		res[idx] = value.Interface()
-		//return nil, fmt.Errorf("Unkonw howto got the interface{} from %v", value)
 	}
 	return res, nil
 }

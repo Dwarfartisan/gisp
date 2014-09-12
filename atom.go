@@ -37,7 +37,7 @@ func (atom Atom) Eval(env Env) (interface{}, error) {
 }
 
 func atomNameParser(st p.ParseState) (interface{}, error) {
-	ret, err := p.Bind(p.Many1(p.NoneOf("'[]() \t\r\n.:")),
+	ret, err := p.Bind(p.Many1(p.NoneOf("'[]() \t\r\n\".:")),
 		p.ReturnString)(st)
 	if err != nil {
 		return nil, err

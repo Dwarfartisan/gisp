@@ -3,6 +3,7 @@ package gisp
 import (
 	"fmt"
 	p "github.com/Dwarfartisan/goparsec"
+	"reflect"
 )
 
 // Gisp 实现一个基本的 gisp 解释器
@@ -23,8 +24,24 @@ func NewGisp(buildins map[string]Toolbox) (*Gisp, error) {
 	return &ret, nil
 }
 
+// def as = def var + set var
+func (gisp *Gisp) DefAs(name string, value interface{}) error {
+	t := Type{reflect.TypeOf(value), false}
+	slot := VarSlot(t)
+	slot.Set(value)
+	return gisp.Defvar(name, slot)
+}
+
+// def option as  = def var? + set var
+func (gisp *Gisp) DefOptAs(name string, value interface{}) error {
+	t := Type{reflect.TypeOf(value), true}
+	slot := VarSlot(t)
+	slot.Set(value)
+	return gisp.Defvar(name, slot)
+}
+
 // Defvar 实现 Env.Defvar
-func (gisp Gisp) Defvar(name string, slot Var) error {
+func (gisp *Gisp) Defvar(name string, slot Var) error {
 	if _, ok := gisp.Content[name]; ok {
 		return fmt.Errorf("var %s exists", name)
 	}
@@ -71,6 +88,9 @@ func (gisp *Gisp) Setvar(name string, value interface{}) error {
 
 func (gisp Gisp) Local(name string) (interface{}, bool) {
 	if value, ok := gisp.Content[name]; ok {
+		if slot, ok := value.(Var); ok {
+			return slot.Get(), true
+		}
 		return value, true
 	} else {
 		return nil, false
