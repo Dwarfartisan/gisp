@@ -5,7 +5,7 @@ import (
 )
 
 func TestParseString(t *testing.T) {
-	g, _ := NewGisp(map[string]Toolbox{})
+	g := NewGisp(map[string]Toolbox{})
 	gisp := *g
 	data := `"I'm a string"`
 	str, err := gisp.Parse(data)
@@ -18,7 +18,7 @@ func TestParseString(t *testing.T) {
 }
 
 func TestParseFloat(t *testing.T) {
-	g, _ := NewGisp(map[string]Toolbox{})
+	g := NewGisp(map[string]Toolbox{})
 	gisp := *g
 	data := "3.14"
 	ret, err := gisp.Parse(data)

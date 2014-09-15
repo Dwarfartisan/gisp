@@ -7,7 +7,7 @@ import (
 
 func TestTypeFound(t *testing.T) {
 	m := money{9.99, "USD"}
-	g, _ := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 		"props":  Propositions,
 	})

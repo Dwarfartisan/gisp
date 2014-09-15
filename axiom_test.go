@@ -13,12 +13,9 @@ func TestQuoteFound(t *testing.T) {
 }
 
 func TestQuoteCall(t *testing.T) {
-	g, err := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 	})
-	if err != nil {
-		t.Fatalf("except gisp parser but %v", err)
-	}
 	gisp := *g
 	list := List{Int(1), Int(1), Int(2), Int(3), Int(5), Int(8), Int(13), Int(21)}
 	q, ok := gisp.Lookup("quote")
@@ -37,7 +34,7 @@ func TestQuoteCall(t *testing.T) {
 }
 
 func TestQuoteEval(t *testing.T) {
-	g, _ := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 	})
 	gisp := *g
@@ -52,7 +49,7 @@ func TestQuoteEval(t *testing.T) {
 }
 
 func TestGetEval(t *testing.T) {
-	g, _ := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 	})
 	gisp := *g
@@ -70,7 +67,7 @@ func TestGetEval(t *testing.T) {
 }
 
 func TestVarEval(t *testing.T) {
-	g, _ := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 	})
 	gisp := *g

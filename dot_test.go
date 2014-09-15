@@ -10,7 +10,7 @@ import (
 
 func TestDotTime(t *testing.T) {
 	now := tm.Now()
-	g, _ := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 		"props":  Propositions,
 	})
@@ -55,7 +55,7 @@ func TestDotMap(t *testing.T) {
 	if !reflect.DeepEqual(res[0].Interface(), box["b"]) {
 		t.Fatalf("except %v but got %v", box["b"], res[0].Interface())
 	}
-	g, _ := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 		"props":  Propositions,
 	})

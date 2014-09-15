@@ -98,3 +98,11 @@ func (list List) Eval(env Env) (interface{}, error) {
 	}
 	return nil, fmt.Errorf("%v:%v is't callable", list[0], reflect.TypeOf(list[0]))
 }
+
+func L(data ...interface{}) List {
+	l := make(List, len(data))
+	for idx, item := range data {
+		l[idx] = item
+	}
+	return l
+}

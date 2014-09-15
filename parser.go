@@ -13,7 +13,7 @@ type Gisp struct {
 }
 
 // NewGisp 给定若干可以组合的基准环境，用于构造环境
-func NewGisp(buildins map[string]Toolbox) (*Gisp, error) {
+func NewGisp(buildins map[string]Toolbox) *Gisp {
 	ret := Gisp{
 		Meta: map[string]interface{}{
 			"category": "gisp",
@@ -21,7 +21,7 @@ func NewGisp(buildins map[string]Toolbox) (*Gisp, error) {
 		},
 		Content: map[string]interface{}{},
 	}
-	return &ret, nil
+	return &ret
 }
 
 // def as = def var + set var

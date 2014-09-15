@@ -83,13 +83,10 @@ func TestMoneyMul(t *testing.T) {
 	in := money{Float(30.9), "CNY"}
 	ratio := Float(0.8)
 	out := in.Mul(ratio)
-	g, err := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 		"props":  Propositions,
 	})
-	if err != nil {
-		t.Fatalf("except gisp parser but %v", err)
-	}
 	g.Defun("*", mrmul())
 	mulx, ok := g.Lookup("*")
 	if !ok {
@@ -109,13 +106,10 @@ func TestMulAutoOverload(t *testing.T) {
 	in := Float(30.9)
 	ratio := Float(0.8)
 	out := in * ratio
-	g, err := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 		"props":  Propositions,
 	})
-	if err != nil {
-		t.Fatalf("except gisp parser but %v", err)
-	}
 	g.Defun("*", mrmul())
 	mulx, ok := g.Lookup("*")
 	if !ok {

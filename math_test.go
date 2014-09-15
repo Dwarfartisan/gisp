@@ -30,13 +30,10 @@ func TestAddx1(t *testing.T) {
 }
 
 func TestAddExpr(t *testing.T) {
-	g, err := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 		"props":  Propositions,
 	})
-	if err != nil {
-		t.Fatalf("except gisp parser but %v", err)
-	}
 	addx, err := g.Parse("+")
 	if err != nil {
 		t.Fatalf("except add operator but error %v", err)
@@ -52,13 +49,10 @@ func TestAddExpr(t *testing.T) {
 }
 
 func TestMulExpr(t *testing.T) {
-	g, err := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 		"props":  Propositions,
 	})
-	if err != nil {
-		t.Fatalf("except gisp parser but %v", err)
-	}
 	mulx, err := g.Parse("*")
 	if err != nil {
 		t.Fatalf("except add operator but error %v", err)

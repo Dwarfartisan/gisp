@@ -17,7 +17,7 @@ func TestBracketParser(t *testing.T) {
 }
 
 func TestBracketBasic(t *testing.T) {
-	g, _ := NewGisp(map[string]Toolbox{
+	g := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 		"props":  Propositions,
 	})
