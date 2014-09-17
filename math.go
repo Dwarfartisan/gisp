@@ -132,7 +132,7 @@ func addx(st px.ParsexState) (interface{}, error) {
 	}
 
 	if nerr, ok := err.(NotNumberError); ok {
-		return nil, TypeSignError{Type: Type{FLOAT, false}, Value: nerr.Value}
+		return nil, TypeSignError{Type: FLOATMUST, Value: nerr.Value}
 	}
 	return nil, err
 }

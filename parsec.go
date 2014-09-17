@@ -1,9 +1,9 @@
 package gisp
 
 import (
-	"strconv"
-
+	"fmt"
 	p "github.com/Dwarfartisan/goparsec"
+	"strconv"
 )
 
 // IntParser 解析整数
@@ -97,7 +97,11 @@ func ListParserExt(env Env) p.Parser {
 }
 
 func QuoteParser(st p.ParseState) (interface{}, error) {
-	lisp, err := p.Bind_(p.Rune('\''), ValueParser)(st)
+	lisp, err := p.Bind_(p.Rune('\''),
+		p.Choice(
+			p.Try(p.Bind(AtomParser, SuffixParser)),
+			p.Bind(ListParser, SuffixParser),
+		))(st)
 	if err == nil {
 		return Quote{lisp}, nil
 	} else {
@@ -107,10 +111,16 @@ func QuoteParser(st p.ParseState) (interface{}, error) {
 
 func QuoteParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
-		lisp, err := p.Bind_(p.Rune('\''), ValueParserExt(env))(st)
+		fmt.Println("ext quote parser")
+		lisp, err := p.Bind_(p.Rune('\''),
+			p.Choice(
+				p.Try(p.Bind(AtomParserExt(env), SuffixParser)),
+				p.Bind(ListParserExt(env), SuffixParser),
+			))(st)
 		if err == nil {
 			return Quote{lisp}, nil
 		} else {
+			fmt.Println(err)
 			return nil, err
 		}
 	}
@@ -126,7 +136,8 @@ func ValueParser(st p.ParseState) (interface{}, error) {
 		p.Try(BoolParser),
 		p.Try(NilParser),
 		p.Try(p.Bind(AtomParser, SuffixParser)),
-		p.Bind(ListParser, SuffixParser),
+		p.Try(p.Bind(ListParser, SuffixParser)),
+		QuoteParser,
 	)(st)
 	return value, err
 }
@@ -142,7 +153,8 @@ func ValueParserExt(env Env) p.Parser {
 			p.Try(BoolParser),
 			p.Try(NilParser),
 			p.Try(p.Bind(AtomParserExt(env), SuffixParser)),
-			p.Bind(ListParserExt(env), SuffixParser),
+			p.Try(p.Bind(ListParserExt(env), SuffixParser)),
+			QuoteParserExt(env),
 		)(st)
 		return value, err
 	}

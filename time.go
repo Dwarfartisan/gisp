@@ -5,7 +5,7 @@ import (
 	tm "time"
 )
 
-var time = Toolkit{
+var Time = Toolkit{
 	Meta: map[string]interface{}{
 		"category": "toolkit",
 		"name":     "time",
@@ -13,7 +13,7 @@ var time = Toolkit{
 	Content: map[string]Expr{
 		"now": func(env Env) Element {
 			return func(args ...interface{}) (interface{}, error) {
-				_, err := GetArgs(env, px.Binds_(px.Eof), args)
+				_, err := GetArgs(env, px.Eof, args)
 				if err != nil {
 					return nil, err
 				}

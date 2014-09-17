@@ -24,6 +24,17 @@ func NewGisp(buildins map[string]Toolbox) *Gisp {
 	return &ret
 }
 
+func NewGispWith(buildins map[string]Toolbox, ext map[string]Toolbox) *Gisp {
+	gisp := NewGisp(buildins)
+	if ext == nil {
+		return gisp
+	}
+	for k, v := range ext {
+		gisp.DefAs(k, v)
+	}
+	return gisp
+}
+
 // def as = def var + set var
 func (gisp *Gisp) DefAs(name string, value interface{}) error {
 	t := Type{reflect.TypeOf(value), false}

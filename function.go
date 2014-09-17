@@ -13,6 +13,19 @@ func (err TypeSignError) Error() string {
 	return fmt.Sprintf("%v can't match %v", err.Value, err.Type)
 }
 
+type ParsexSignError struct {
+	message string
+	args    []interface{}
+}
+
+func ParsexSignErrorf(message string, args ...interface{}) ParsexSignError {
+	return ParsexSignError{message, args}
+}
+
+func (err ParsexSignError) Error() string {
+	return fmt.Sprintf(err.message, err.args...)
+}
+
 type Func interface {
 	Functor
 	Name() string

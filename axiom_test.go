@@ -17,7 +17,7 @@ func TestQuoteCall(t *testing.T) {
 		"axioms": Axiom,
 	})
 	gisp := *g
-	list := List{Int(1), Int(1), Int(2), Int(3), Int(5), Int(8), Int(13), Int(21)}
+	list := L(Int(1), Int(1), Int(2), Int(3), Int(5), Int(8), Int(13), Int(21))
 	q, ok := gisp.Lookup("quote")
 	if !ok {
 		t.Fatalf("except found quote in axioms")
@@ -38,7 +38,7 @@ func TestQuoteEval(t *testing.T) {
 		"axioms": Axiom,
 	})
 	gisp := *g
-	list := List{Int(1), Int(1), Int(2), Int(3), Int(5), Int(8), Int(13), Int(21)}
+	list := L(Int(1), Int(1), Int(2), Int(3), Int(5), Int(8), Int(13), Int(21))
 	re, err := gisp.Eval(Quote{list})
 	if err != nil {
 		t.Fatalf("except eval quote got a list but error %v", err)

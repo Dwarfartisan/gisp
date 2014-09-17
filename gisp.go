@@ -21,6 +21,11 @@ type Env interface {
 	Defun(name string, functor Functor) error
 }
 
+type Parser interface {
+	Parse(string) (interface{}, error)
+	Eval(lisps ...interface{}) (interface{}, error)
+}
+
 type Element func(args ...interface{}) (interface{}, error)
 type Expr func(Env) Element
 
