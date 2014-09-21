@@ -111,7 +111,6 @@ func QuoteParser(st p.ParseState) (interface{}, error) {
 
 func QuoteParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
-		fmt.Println("ext quote parser")
 		lisp, err := p.Bind_(p.Rune('\''),
 			p.Choice(
 				p.Try(p.Bind(AtomParserExt(env), SuffixParser)),

@@ -3,6 +3,7 @@ package gisp
 import (
 	"reflect"
 	"testing"
+	// tm "time"
 )
 
 func TestQuoteFound(t *testing.T) {
@@ -76,6 +77,39 @@ func TestVarEval(t *testing.T) {
 		t.Fatalf("except var pi as 3.14 but error: %v", err)
 	}
 	pi, err := gisp.Eval(Atom{"pi", FLOATMUST})
+	if err != nil {
+		t.Fatalf("except got pi is 3.14 but error: %v", err)
+	}
+	if !reflect.DeepEqual(pi, Float(3.14)) {
+		t.Fatalf("except got pi is 3.14 but %v", pi)
+	}
+}
+
+func TestSetBracket(t *testing.T) {
+	gisp := NewGisp(map[string]Toolbox{
+		"axioms": Axiom,
+	})
+	err := gisp.DefAs("box", map[string]interface{}{
+		"a": "abc",
+		"b": "bcd",
+		"c": 3.14,
+		"d": 99,
+	})
+	if err != nil {
+		t.Fatalf("except var pi as 3.14 but error: %v", err)
+	}
+	pi, err := gisp.Parse("box[\"c\"]")
+	if err != nil {
+		t.Fatalf("except got pi is 3.14 but error: %v", err)
+	}
+	if !reflect.DeepEqual(pi, 3.14) {
+		t.Fatalf("except got pi is 3.14 but %v", pi)
+	}
+	_, err = gisp.Parse("(set box[\"c\"] 3.14)")
+	if err != nil {
+		t.Fatalf("except got pi is 3.14 but error: %v", err)
+	}
+	pi, err = gisp.Parse("box[\"c\"]")
 	if err != nil {
 		t.Fatalf("except got pi is 3.14 but error: %v", err)
 	}

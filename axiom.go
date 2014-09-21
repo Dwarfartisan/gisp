@@ -42,12 +42,7 @@ var Axiom = Toolkit{
 				if err != nil {
 					return nil, err
 				}
-				err = env.Setvar((args[0].(Atom)).Name, value)
-				if err == nil {
-					return nil, err
-				}
-				return value, nil
-
+				return set(env, args[0], value)
 			}
 		},
 		"equal": func(env Env) Element {
@@ -142,4 +137,26 @@ var Axiom = Toolkit{
 			}
 		},
 	},
+}
+
+func set(env Env, slot, arg interface{}) (interface{}, error) {
+	switch setter := slot.(type) {
+	case Atom:
+		err := env.Setvar(setter.Name, arg)
+		if err == nil {
+			return nil, err
+		}
+		return arg, nil
+	case Bracket:
+		return setter.SetItemBy(env, arg)
+	case List:
+		s, err := Eval(env, setter)
+		if err != nil {
+			return nil, err
+		}
+		return set(env, s, arg)
+	default:
+		return arg, fmt.Errorf("set error: set %v(%v) as %v is invalid",
+			slot, reflect.TypeOf(slot), arg)
+	}
 }

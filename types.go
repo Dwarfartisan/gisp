@@ -16,6 +16,7 @@ var (
 	ATOM     = reflect.TypeOf((*Atom)(nil)).Elem()
 	LIST     = reflect.TypeOf((*List)(nil)).Elem()
 	QUOTE    = reflect.TypeOf((*Quote)(nil)).Elem()
+	DICT     = reflect.TypeOf((*map[string]interface{})(nil)).Elem()
 
 	BOOLOPTION     = Type{BOOL, true}
 	INTOPTION      = Type{INT, true}
@@ -27,6 +28,7 @@ var (
 	ATOMOPTION     = Type{ATOM, true}
 	LISTOPTION     = Type{LIST, true}
 	QUOTEOPTION    = Type{QUOTE, true}
+	DICTOPTION     = Type{DICT, true}
 
 	BOOLMUST     = Type{BOOL, false}
 	INTMUST      = Type{INT, false}
@@ -38,6 +40,7 @@ var (
 	ATOMMUST     = Type{ATOM, false}
 	LISTMUST     = Type{LIST, false}
 	QUOTEMUST    = Type{QUOTE, false}
+	DICTMUST     = Type{DICT, false}
 )
 
 var TypeBox = Gearbox{
@@ -46,32 +49,25 @@ var TypeBox = Gearbox{
 		"name":     "types",
 	},
 	Content: map[string]interface{}{
-		"int":       INT,
+		"int":       INTMUST,
 		"int?":      INTOPTION,
-		"int!":      INTMUST,
-		"float":     FLOAT,
+		"float":     FLOATMUST,
 		"float?":    FLOATOPTION,
-		"float!":    FLOATMUST,
-		"string":    STRING,
+		"string":    STRINGMUST,
 		"string?":   STRINGOPTION,
-		"string!":   STRINGMUST,
-		"time":      TIME,
+		"time":      TIMEMUST,
 		"time?":     TIMEOPTION,
-		"time!":     TIMEMUST,
-		"duration":  DURATION,
+		"dict":      DICTMUST,
+		"dict?":     DICTMUST,
+		"duration":  DURATIONMUST,
 		"duration?": DURATIONOPTION,
-		"duration!": DURATIONMUST,
-		"list":      LIST,
+		"list":      LISTMUST,
 		"list?":     LISTOPTION,
-		"list!":     LISTMUST,
 		"atom":      ATOM,
 		"atom?":     ATOMOPTION,
-		"atom!":     ATOMMUST,
-		"quote":     QUOTE,
+		"quote":     QUOTEMUST,
 		"quote!":    QUOTEOPTION,
-		"quote?":    QUOTEMUST,
-		"any":       ANY,
+		"any":       ANYMUST,
 		"any?":      ANYOPTION,
-		"any!":      ANYMUST,
 	},
 }

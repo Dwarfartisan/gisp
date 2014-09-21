@@ -10,7 +10,10 @@ func TestLessTime(t *testing.T) {
 		map[string]Toolbox{"axiom": Axiom, "props": Propositions},
 		map[string]Toolbox{"time": Time})
 	gisp.DefAs("start", tm.Now())
-	gisp.Parse("(var stop (time.now))")
+	_, err := gisp.Parse("(var stop (time.now))")
+	if err != nil {
+		t.Fatalf("excpet def var now but error: %v", err)
+	}
 	ret, err := gisp.Parse("(< start stop)")
 	start, _ := gisp.Parse("start")
 	stop, _ := gisp.Parse("stop")

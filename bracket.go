@@ -87,11 +87,13 @@ func (bracket Bracket) evalSlice(env Env, val reflect.Value) (interface{}, error
 func (bracket Bracket) computeIndexs(val reflect.Value, input []interface{}) ([]int, error) {
 	indexs := make([]int, len(input))
 	for idx, item := range input {
-		i, err := bracket.computeIndex(val, item)
-		if err != nil {
-			return nil, err
+		if idx < 2 {
+			i, err := bracket.computeIndex(val, item)
+			if err != nil {
+				return nil, err
+			}
+			indexs[idx] = i
 		}
-		indexs[idx] = i
 	}
 	return indexs, nil
 }
@@ -111,6 +113,67 @@ func (bracket Bracket) computeIndex(val reflect.Value, input interface{}) (int, 
 	}
 	return 0, fmt.Errorf("Try to slice %v[%v] but %v is invalid",
 		bracket.obj, bracket.expr, input)
+}
+
+func (bracket Bracket) SetItemBy(env Env, item interface{}) (interface{}, error) {
+	obj, err := Eval(env, bracket.obj)
+	if err != nil {
+		return nil, err
+	}
+	val := reflect.ValueOf(obj)
+	switch val.Kind() {
+	case reflect.Map:
+		return bracket.SetMapIndex(val, env, item)
+	case reflect.Slice:
+		return bracket.SetSliceIndex(val, env, item)
+	default:
+		return nil, fmt.Errorf("excpet %v[%v]=%v but %v is neither slice nor map.",
+			obj, item, bracket.expr, obj)
+	}
+}
+
+func (bracket Bracket) SetMapIndex(val reflect.Value, env Env, item interface{}) (interface{}, error) {
+	if len(bracket.expr) != 1 {
+		return nil, fmt.Errorf("excpet %v[%v]=%v but %v has error items(only accept one key).",
+			val.Interface(), bracket.expr, item, bracket.expr)
+	}
+	k, err := Eval(env, bracket.expr[0])
+	if err != nil {
+		return nil, err
+	}
+	key := reflect.ValueOf(k)
+	value := reflect.ValueOf(item)
+	val.SetMapIndex(key, value)
+	return val.Interface(), nil
+}
+
+func (bracket Bracket) SetSliceIndex(val reflect.Value, env Env, item interface{}) (interface{}, error) {
+	if len(bracket.expr) < 1 {
+		return nil, fmt.Errorf("excpet %v[%v]=%v but %v has error items(only accept one or two key).",
+			val.Interface(), bracket.expr, item, bracket.expr)
+	}
+	item, err := Eval(env, bracket.expr[0])
+	if err != nil {
+		return nil, err
+	}
+	index, err := bracket.computeIndex(val, item)
+	if err != nil {
+		return nil, err
+	}
+	value := reflect.ValueOf(item)
+	val.Index(index).Set(value)
+	return val.Interface(), nil
+}
+
+func IntVal(st px.ParsexState) (interface{}, error) {
+	x, err := st.Next(px.Always)
+	if err != nil {
+		return nil, err
+	}
+	if _, ok := x.(Int); ok {
+		return x, nil
+	}
+	return nil, fmt.Errorf("except a Int value but got %v", x)
 }
 
 func BracketParser(st p.ParseState) (interface{}, error) {
@@ -135,15 +198,4 @@ func BracketParser(st p.ParseState) (interface{}, error) {
 	}
 
 	return tokens, nil
-}
-
-func IntVal(st px.ParsexState) (interface{}, error) {
-	x, err := st.Next(px.Always)
-	if err != nil {
-		return nil, err
-	}
-	if _, ok := x.(Int); ok {
-		return x, nil
-	}
-	return nil, fmt.Errorf("except a Int value but got %v", x)
 }
