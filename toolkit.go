@@ -8,7 +8,7 @@ import (
 // Toolkit 实现了一个基本环境，它没有 Define 和 Set ，用于封装只读的环境。
 type Toolkit struct {
 	Meta    map[string]interface{}
-	Content map[string]Functor
+	Content map[string]interface{}
 }
 
 // Lookup 实现了基本的 Env.Lookup 策略：现在 Local 中查找，否则向上查找 Gobal

@@ -22,15 +22,37 @@ func TestQuoteCall(t *testing.T) {
 	if !ok {
 		t.Fatalf("except found quote in axioms")
 	}
-	quote := q.(Functor)
-	quoted, err := quote.Task(gisp, list)
-	if err != nil {
-		t.Fatalf("except quote task but %v", err)
+	var fb interface{} = nil
+	switch quote := q.(type) {
+	case Functor:
+		quoted, err := quote.Task(gisp, list)
+		if err != nil {
+			t.Fatalf("except quote task but %v", err)
+		}
+		fb, err = quoted.Eval(gisp)
+		if err != nil {
+			t.Fatalf("except quote the list but %v", err)
+		}
+	case TaskExpr:
+		quoted, err := quote(gisp, list)
+		if err != nil {
+			t.Fatalf("except quote task but %v", err)
+		}
+		fb, err = quoted(gisp)
+		if err != nil {
+			t.Fatalf("except quote the list but %v", err)
+		}
+	case LispExpr:
+		quoted, err := quote(gisp, list)
+		if err != nil {
+			t.Fatalf("except quote task but %v", err)
+		}
+		fb, err = quoted.Eval(gisp)
+		if err != nil {
+			t.Fatalf("except quote the list but %v", err)
+		}
 	}
-	fb, err := quoted.Eval(gisp)
-	if err != nil {
-		t.Fatalf("except quote the list but %v", err)
-	}
+
 	fbq := Quote{list}
 	if !reflect.DeepEqual(fb, fbq) {
 		t.Fatalf("except quote (1 1 2 3 5 8 13 21) got %v but %v", fbq, fb)

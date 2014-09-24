@@ -64,12 +64,12 @@ func (sb SimpleBox) Task(env Env, args ...interface{}) (Lisp, error) {
 }
 
 type ExprxBox struct {
-	ExprBox
+	TaskerBox
 	checker ArgsSignChecker
 }
 
-func BoxExprx(asign ArgsSignChecker, expr Expr) ExprxBox {
-	return ExprxBox{ExprBox{expr}, asign}
+func BoxExprx(asign ArgsSignChecker, expr TaskExpr) ExprxBox {
+	return ExprxBox{TaskerBox{expr}, asign}
 }
 
 func (box ExprxBox) Task(env Env, args ...interface{}) (Lisp, error) {
@@ -82,18 +82,18 @@ func (box ExprxBox) Task(env Env, args ...interface{}) (Lisp, error) {
 		return nil, ParsexSignErrorf("Args Type Sign Error: pass %v got error: %v", args, err)
 	}
 
-	return box.ExprBox.Task(env, args...)
+	return box.TaskerBox.Task(env, args...)
 }
 
-type ExprBox struct {
-	functor Expr
+type TaskerBox struct {
+	functor TaskExpr
 }
 
-func BoxExpr(expr Expr) ExprBox {
-	return ExprBox{expr}
+func BoxExpr(expr TaskExpr) TaskerBox {
+	return TaskerBox{expr}
 }
 
-func (box ExprBox) Task(env Env, args ...interface{}) (Lisp, error) {
+func (box TaskerBox) Task(env Env, args ...interface{}) (Lisp, error) {
 	task, err := box.functor(env, args...)
 	if err != nil {
 		return nil, ParsexSignErrorf("Args Type Sign Error: pass %v got error: %v", args, err)
@@ -102,10 +102,10 @@ func (box ExprBox) Task(env Env, args ...interface{}) (Lisp, error) {
 }
 
 type EvalBox struct {
-	functor Evaler
+	functor LispExpr
 }
 
-func EvalExpr(expr Evaler) EvalBox {
+func EvalExpr(expr LispExpr) EvalBox {
 	return EvalBox{expr}
 }
 

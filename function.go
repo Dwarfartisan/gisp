@@ -71,12 +71,18 @@ func (fun Function) Task(env Env, args ...interface{}) (Lisp, error) {
 		switch foo := f.(type) {
 		case Functor:
 			return foo.Task(env, args...)
-		case Expr:
+		case TaskExpr:
 			task, err := foo(env, args...)
 			if err != nil {
 				return nil, err
 			}
 			return TaskBox{task}, nil
+		case LispExpr:
+			lisp, err := foo(env, args...)
+			if err != nil {
+				return nil, err
+			}
+			return lisp, nil
 		}
 	}
 	return nil, fmt.Errorf("not found args type sign for %v", args)

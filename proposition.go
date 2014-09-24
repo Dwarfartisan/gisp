@@ -9,7 +9,7 @@ var Propositions Toolkit = Toolkit{
 		"name":     "propositions",
 		"category": "package",
 	},
-	Content: map[string]Functor{
+	Content: map[string]interface{}{
 		"lambda": BoxExpr(LambdaExpr),
 		"let":    BoxExpr(LetExpr),
 		"+":      EvalExpr(ParsexExpr(addx)),
@@ -37,7 +37,7 @@ var Propositions Toolkit = Toolkit{
 	},
 }
 
-func ParsexExpr(pxExpr px.Parser) Evaler {
+func ParsexExpr(pxExpr px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		data, err := Evals(env, args...)
 		if err != nil {
@@ -52,7 +52,7 @@ func ParsexExpr(pxExpr px.Parser) Evaler {
 	}
 }
 
-func ExtExpr(extExpr func(env Env) px.Parser) Evaler {
+func ExtExpr(extExpr func(env Env) px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		data, err := Evals(env, args...)
 		if err != nil {
@@ -81,7 +81,7 @@ func NotParsex(pxExpr px.Parser) px.Parser {
 	}
 }
 
-func ParsexReverseExpr(pxExpr px.Parser) Evaler {
+func ParsexReverseExpr(pxExpr px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		data, err := Evals(env, args...)
 		if err != nil {
@@ -102,7 +102,7 @@ func ParsexReverseExpr(pxExpr px.Parser) Evaler {
 	}
 }
 
-func NotExpr(expr Evaler) Evaler {
+func NotExpr(expr LispExpr) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		element, err := expr(env, args...)
 		if err != nil {
@@ -120,7 +120,7 @@ func NotExpr(expr Evaler) Evaler {
 	}
 }
 
-func OrExpr(x, y px.Parser) Evaler {
+func OrExpr(x, y px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		data, err := Evals(env, args...)
 		if err != nil {
@@ -147,19 +147,19 @@ func OrExpr(x, y px.Parser) Evaler {
 	}
 }
 
-func OrExtExpr(x, y func(Env) px.Parser) Evaler {
+func OrExtExpr(x, y func(Env) px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		return OrExpr(x(env), y(env))(env, args...)
 	}
 }
 
-func OrExtRExpr(x px.Parser, y func(Env) px.Parser) Evaler {
+func OrExtRExpr(x px.Parser, y func(Env) px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		return OrExpr(x, y(env))(env, args...)
 	}
 }
 
-func ExtReverseExpr(expr func(Env) px.Parser) Evaler {
+func ExtReverseExpr(expr func(Env) px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		return ParsexReverseExpr(expr(env))(env, args...)
 	}

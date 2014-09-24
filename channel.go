@@ -58,7 +58,7 @@ var channel = Toolkit{
 		"category": "toolkit",
 		"name":     "channel",
 	},
-	Content: map[string]Functor{
+	Content: map[string]interface{}{
 		"chan": SimpleBox{
 			ParsexSignChecker(px.Binds_(
 				TypeAs(reflect.TypeOf((*reflect.Type)(nil)).Elem()),

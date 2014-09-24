@@ -10,7 +10,7 @@ var Time = Toolkit{
 		"category": "toolkit",
 		"name":     "time",
 	},
-	Content: map[string]Functor{
+	Content: map[string]interface{}{
 		"now": SimpleBox{
 			ParsexSignChecker(px.Eof),
 			func(args ...interface{}) Tasker {

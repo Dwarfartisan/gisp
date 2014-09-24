@@ -23,8 +23,8 @@ type Parser interface {
 }
 
 type Tasker func(env Env) (interface{}, error)
-type Expr func(env Env, args ...interface{}) (Tasker, error)
-type Evaler func(env Env, args ...interface{}) (Lisp, error)
+type TaskExpr func(env Env, args ...interface{}) (Tasker, error)
+type LispExpr func(env Env, args ...interface{}) (Lisp, error)
 
 // type Gearbox struct {
 // 	Meta    map[string]interface{}

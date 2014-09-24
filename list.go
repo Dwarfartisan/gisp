@@ -39,9 +39,9 @@ func (list List) Eval(env Env) (interface{}, error) {
 		}
 	case Functor:
 		lisp = fun
-	// case Func:
-	// 	lisp = fun
-	case Expr:
+	case TaskExpr:
+		lisp = fun
+	case LispExpr:
 		lisp = fun
 	case Dot:
 		lisp = fun
@@ -51,15 +51,19 @@ func (list List) Eval(env Env) (interface{}, error) {
 		}
 	}
 	switch item := lisp.(type) {
-	case Expr:
+	case TaskExpr:
 		task, err := item(env, list[1:]...)
 		if err != nil {
 			return nil, err
 		}
 		return task(env)
+	case LispExpr:
+		lisp, err := item(env, list[1:]...)
+		if err != nil {
+			return nil, err
+		}
+		return lisp.Eval(env)
 	case Task:
-		return item.Eval(env)
-	case Go:
 		return item.Eval(env)
 	case Lambda:
 		lisp, err := item.Task(env, list[1:]...)
@@ -80,8 +84,12 @@ func (list List) Eval(env Env) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		if expr, ok := v.(Expr); ok {
-			return expr(env, list[1:]...)
+		if expr, ok := v.(TaskExpr); ok {
+			tasker, err := expr(env, list[1:]...)
+			if err != nil {
+				return nil, err
+			}
+			return tasker(env)
 		}
 		if functor, ok := v.(Functor); ok {
 			tasker, err := functor.Task(env, list[1:]...)
