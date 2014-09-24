@@ -9,57 +9,61 @@ var Propositions Toolkit = Toolkit{
 		"name":     "propositions",
 		"category": "package",
 	},
-	Content: map[string]Expr{
-		"lambda": LambdaExpr,
-		"let":    LetExpr,
-		"+":      addExpr,
-		"add":    addExpr,
-		"-":      subExpr,
-		"sub":    subExpr,
-		"*":      mulExpr,
-		"mul":    mulExpr,
-		"/":      divExpr,
-		"div":    divExpr,
-		"cmp":    cmpExpr,
-		"less":   lessExpr,
-		"<":      lessExpr,
-		"<?":     lsoExpr,
-		"<=":     leExpr,
-		"<=?":    leoExpr,
-		">":      greatExpr,
-		">?":     gtoExpr,
-		">=":     geExpr,
-		">=?":    gtoExpr,
-		"==":     eqsExpr,
-		"==?":    eqsoExpr,
-		"!=":     neqsExpr,
-		"!=?":    neqsoExpr,
+	Content: map[string]Functor{
+		"lambda": BoxExpr(LambdaExpr),
+		"let":    BoxExpr(LetExpr),
+		"+":      EvalExpr(ParsexExpr(addx)),
+		"add":    EvalExpr(ParsexExpr(addx)),
+		"-":      EvalExpr(ParsexExpr(subx)),
+		"sub":    EvalExpr(ParsexExpr(subx)),
+		"*":      EvalExpr(ParsexExpr(mulx)),
+		"mul":    EvalExpr(ParsexExpr(mulx)),
+		"/":      EvalExpr(ParsexExpr(divx)),
+		"div":    EvalExpr(ParsexExpr(divx)),
+		"cmp":    EvalExpr(cmpExpr),
+		"less":   EvalExpr(lessExpr),
+		"<":      EvalExpr(lessExpr),
+		"<?":     EvalExpr(lsoExpr),
+		"<=":     EvalExpr(leExpr),
+		"<=?":    EvalExpr(leoExpr),
+		">":      EvalExpr(greatExpr),
+		">?":     EvalExpr(gtoExpr),
+		">=":     EvalExpr(geExpr),
+		">=?":    EvalExpr(geoExpr),
+		"==":     EvalExpr(eqsExpr),
+		"==?":    EvalExpr(eqsoExpr),
+		"!=":     EvalExpr(neqsExpr),
+		"!=?":    EvalExpr(neqsoExpr),
 	},
 }
 
-func ParsexExpr(pxExpr px.Parser) Expr {
-	return func(env Env) Element {
-		return func(args ...interface{}) (interface{}, error) {
-			data, err := Evals(env, args...)
-			if err != nil {
-				return nil, err
-			}
-			st := px.NewStateInMemory(data)
-			return pxExpr(st)
+func ParsexExpr(pxExpr px.Parser) Evaler {
+	return func(env Env, args ...interface{}) (Lisp, error) {
+		data, err := Evals(env, args...)
+		if err != nil {
+			return nil, err
 		}
+		st := px.NewStateInMemory(data)
+		ret, err := pxExpr(st)
+		if err != nil {
+			return nil, err
+		}
+		return Q(ret), nil
 	}
 }
 
-func ExtExpr(extExpr func(Env) px.Parser) Expr {
-	return func(env Env) Element {
-		return func(args ...interface{}) (interface{}, error) {
-			data, err := Evals(env, args...)
-			if err != nil {
-				return nil, err
-			}
-			st := px.NewStateInMemory(data)
-			return extExpr(env)(st)
+func ExtExpr(extExpr func(env Env) px.Parser) Evaler {
+	return func(env Env, args ...interface{}) (Lisp, error) {
+		data, err := Evals(env, args...)
+		if err != nil {
+			return nil, err
 		}
+		st := px.NewStateInMemory(data)
+		ret, err := extExpr(env)(st)
+		if err != nil {
+			return nil, err
+		}
+		return Q(ret), nil
 	}
 }
 
@@ -77,82 +81,87 @@ func NotParsex(pxExpr px.Parser) px.Parser {
 	}
 }
 
-func ParsexReverseExpr(pxExpr px.Parser) Expr {
-	return func(env Env) Element {
-		return func(args ...interface{}) (interface{}, error) {
-			data, err := Evals(env, args...)
-			if err != nil {
-				return nil, err
-			}
-			l := len(data)
-			last := l - 1
-			datax := make([]interface{}, l)
-			for idx, item := range data {
-				datax[last-idx] = item
-			}
-			st := px.NewStateInMemory(data)
-			return pxExpr(st)
+func ParsexReverseExpr(pxExpr px.Parser) Evaler {
+	return func(env Env, args ...interface{}) (Lisp, error) {
+		data, err := Evals(env, args...)
+		if err != nil {
+			return nil, err
+		}
+		l := len(data)
+		last := l - 1
+		datax := make([]interface{}, l)
+		for idx, item := range data {
+			datax[last-idx] = item
+		}
+		st := px.NewStateInMemory(data)
+		lisp, err := pxExpr(st)
+		if err != nil {
+			return nil, err
+		}
+		return lisp.(Lisp), nil
+	}
+}
+
+func NotExpr(expr Evaler) Evaler {
+	return func(env Env, args ...interface{}) (Lisp, error) {
+		element, err := expr(env, args...)
+		if err != nil {
+			return nil, err
+		}
+		ret, err := element.Eval(env)
+		if err != nil {
+			return nil, err
+		}
+		if b, ok := ret.(bool); ok {
+			return Q(!b), nil
+		} else {
+			return nil, ParsexSignErrorf("Unknow howto not %v", b)
 		}
 	}
 }
 
-func NotExpr(expr Expr) Expr {
-	return func(env Env) Element {
-		element := expr(env)
-		return func(args ...interface{}) (interface{}, error) {
-			ret, err := element(args...)
+func OrExpr(x, y px.Parser) Evaler {
+	return func(env Env, args ...interface{}) (Lisp, error) {
+		data, err := Evals(env, args...)
+		if err != nil {
+			return nil, err
+		}
+		st := px.NewStateInMemory(data)
+		rex, err := x(st)
+		if err != nil {
+			return nil, err
+		}
+		if b, ok := rex.(bool); ok {
+			if b {
+				return Q(true), nil
+			}
+			st.SeekTo(0)
+			rex, err = y(st)
 			if err != nil {
-				return ret, err
+				return nil, err
 			}
-			if b, ok := ret.(bool); ok {
-				return !b, nil
-			} else {
-				return nil, ParsexSignErrorf("Unknow howto not %v", b)
-			}
+			return Q(rex), nil
+		} else {
+			return nil, ParsexSignErrorf("Unknow howto combine %v or %v for %v", x, y, data)
 		}
 	}
 }
 
-func OrExpr(x, y px.Parser) Expr {
-	return func(env Env) Element {
-		return func(args ...interface{}) (interface{}, error) {
-			data, err := Evals(env, args...)
-			if err != nil {
-				return nil, err
-			}
-			st := px.NewStateInMemory(data)
-			rex, err := x(st)
-			if err != nil {
-				return nil, err
-			}
-			if b, ok := rex.(bool); ok {
-				if b {
-					return true, nil
-				}
-				st.SeekTo(0)
-				return y(st)
-			} else {
-				return nil, ParsexSignErrorf("Unknow howto combine %v or %v for %v", x, y, args)
-			}
-		}
+func OrExtExpr(x, y func(Env) px.Parser) Evaler {
+	return func(env Env, args ...interface{}) (Lisp, error) {
+		return OrExpr(x(env), y(env))(env, args...)
 	}
 }
 
-func OrExtExpr(x, y func(Env) px.Parser) Expr {
-	return func(env Env) Element {
-		return OrExpr(x(env), y(env))(env)
+func OrExtRExpr(x px.Parser, y func(Env) px.Parser) Evaler {
+	return func(env Env, args ...interface{}) (Lisp, error) {
+		return OrExpr(x, y(env))(env, args...)
 	}
 }
 
-func OrExtRExpr(x px.Parser, y func(Env) px.Parser) Expr {
-	return func(env Env) Element {
-		return OrExpr(x, y(env))(env)
-	}
-}
-
-func ExtReverseExpr(expr func(Env) px.Parser) Expr {
-	return func(env Env) Element {
-		return ParsexReverseExpr(expr(env))(env)
+func ExtReverseExpr(expr func(Env) px.Parser) Evaler {
+	return func(env Env, args ...interface{}) (Lisp, error) {
+		return ParsexReverseExpr(expr(env))(env, args...)
 	}
 }
 
@@ -168,11 +177,13 @@ var cmpExpr = ParsexExpr(compare)
 var greatExpr = ExtReverseExpr(less)
 var gtoExpr = ExtReverseExpr(lessOption)
 var geExpr = OrExtRExpr(equals, less)
-var geoExpr = func(env Env) Element {
-	return func(args ...interface{}) (interface{}, error) {
-		st := px.NewStateInMemory(args)
-		return px.Choice(px.Try(NotParsex(less(env))), FalseIfHasNil)(st)
+var geoExpr = func(env Env, args ...interface{}) (Lisp, error) {
+	st := px.NewStateInMemory(args)
+	ret, err := px.Choice(px.Try(NotParsex(less(env))), FalseIfHasNil)(st)
+	if err != nil {
+		return nil, err
 	}
+	return Q(ret), nil
 }
 var eqsExpr = ParsexExpr(equals)
 var eqsoExpr = ParsexExpr(equalsOption)

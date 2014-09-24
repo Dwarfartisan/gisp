@@ -58,98 +58,84 @@ var channel = Toolkit{
 		"category": "toolkit",
 		"name":     "channel",
 	},
-	Content: map[string]Expr{
-		"chan": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				params, err := GetArgs(env, px.Binds_(
-					TypeAs(reflect.TypeOf((*reflect.Type)(nil)).Elem()),
-					TypeAs(INT),
-					px.Eof), args)
-				if err != nil {
-					return nil, err
+	Content: map[string]Functor{
+		"chan": SimpleBox{
+			ParsexSignChecker(px.Binds_(
+				TypeAs(reflect.TypeOf((*reflect.Type)(nil)).Elem()),
+				TypeAs(INT),
+				px.Eof)),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					return MakeBothChan(args[0].(reflect.Type), args[1].(Int)), nil
 				}
-				return MakeBothChan(params[0].(reflect.Type), params[1].(Int)), nil
-			}
-		},
-		"chan->": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				params, err := GetArgs(env, px.Binds_(
-					TypeAs(reflect.TypeOf((*reflect.Type)(nil)).Elem()),
-					TypeAs(INT),
-					px.Eof), args)
-				if err != nil {
-					return nil, err
+			}},
+		"chan->": SimpleBox{
+			ParsexSignChecker(px.Binds_(
+				TypeAs(reflect.TypeOf((*reflect.Type)(nil)).Elem()),
+				TypeAs(INT),
+				px.Eof)),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					return MakeRecvChan(args[0].(reflect.Type), args[1].(Int)), nil
 				}
-				return MakeRecvChan(params[0].(reflect.Type), params[1].(Int)), nil
-			}
-		},
-		"chan<-": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				params, err := GetArgs(env, px.Binds_(
-					TypeAs(reflect.TypeOf((*reflect.Type)(nil)).Elem()),
-					TypeAs(INT),
-					px.Eof), args)
-				if err != nil {
-					return nil, err
+			}},
+		"chan<-": SimpleBox{
+			ParsexSignChecker(px.Binds_(
+				TypeAs(reflect.TypeOf((*reflect.Type)(nil)).Elem()),
+				TypeAs(INT),
+				px.Eof)),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					return MakeSendChan(args[0].(reflect.Type), args[1].(Int)), nil
 				}
-				return MakeSendChan(params[0].(reflect.Type), params[1].(Int)), nil
-			}
-		},
-		"send": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				params, err := GetArgs(env, px.Binds_(
-					TypeAs(reflect.TypeOf((*Chan)(nil))),
-					px.Either(px.Try(TypeAs(ANYOPTION)), TypeAs(ANYMUST)),
-					px.Eof), args)
-				if err != nil {
-					return nil, err
+			}},
+		"send": SimpleBox{
+			ParsexSignChecker(px.Binds_(
+				TypeAs(reflect.TypeOf((*Chan)(nil))),
+				px.Either(px.Try(TypeAs(ANYOPTION)), TypeAs(ANYMUST)),
+				px.Eof)),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					ch := args[0].(*Chan)
+					ch.Send(args[1])
+					return nil, nil
 				}
-				ch := params[0].(*Chan)
-				ch.Send(params[1])
-				return nil, nil
-			}
-		},
-		"send?": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				params, err := GetArgs(env, px.Binds_(
-					TypeAs(reflect.TypeOf((*Chan)(nil))),
-					px.Either(px.Try(TypeAs(ANYOPTION)), TypeAs(ANYMUST)),
-					px.Eof), args)
-				if err != nil {
-					return nil, err
+			}},
+		"send?": SimpleBox{
+			ParsexSignChecker(px.Binds_(
+				TypeAs(reflect.TypeOf((*Chan)(nil))),
+				px.Either(px.Try(TypeAs(ANYOPTION)), TypeAs(ANYMUST)),
+				px.Eof)),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					ch := args[0].(*Chan)
+					ch.TrySend(args[1])
+					return nil, nil
 				}
-				ch := params[0].(*Chan)
-				ch.TrySend(params[1])
-				return nil, nil
-			}
-		},
-		"recv": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				params, err := GetArgs(env, px.Binds_(
-					TypeAs(reflect.TypeOf((*Chan)(nil))),
-					px.Either(px.Try(TypeAs(ANYOPTION)), TypeAs(ANYMUST)),
-					px.Eof), args)
-				if err != nil {
-					return nil, err
+			}},
+		"recv": SimpleBox{
+			ParsexSignChecker(px.Binds_(
+				TypeAs(reflect.TypeOf((*Chan)(nil))),
+				px.Either(px.Try(TypeAs(ANYOPTION)), TypeAs(ANYMUST)),
+				px.Eof)),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					ch := args[0].(*Chan)
+					data, ok := ch.Recv()
+					return List{data, ok}, nil
 				}
-				ch := params[0].(*Chan)
-				data, ok := ch.Recv()
-				return List{data, ok}, nil
-			}
-		},
-		"recv?": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				params, err := GetArgs(env, px.Binds_(
-					TypeAs(reflect.TypeOf((*Chan)(nil))),
-					px.Either(px.Try(TypeAs(ANYOPTION)), TypeAs(ANYMUST)),
-					px.Eof), args)
-				if err != nil {
-					return nil, err
+			}},
+		"recv?": SimpleBox{
+			ParsexSignChecker(px.Binds_(
+				TypeAs(reflect.TypeOf((*Chan)(nil))),
+				px.Either(px.Try(TypeAs(ANYOPTION)), TypeAs(ANYMUST)),
+				px.Eof)),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					ch := args[0].(*Chan)
+					data, ok := ch.TryRecv()
+					return List{data, ok}, nil
 				}
-				ch := params[0].(*Chan)
-				data, ok := ch.TryRecv()
-				return List{data, ok}, nil
-			}
-		},
+			}},
 	},
 }

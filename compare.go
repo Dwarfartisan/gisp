@@ -12,6 +12,9 @@ func FalseIfHasNil(st px.ParsexState) (interface{}, error) {
 	for {
 		val, err := px.AnyOne(st)
 		if err != nil {
+			if err == io.EOF {
+				return nil, fmt.Errorf("False If Nil Error: Found EOF.")
+			}
 			return nil, err
 		}
 		if val == nil {
@@ -46,7 +49,7 @@ func LessThanList(env Env) func(x interface{}) px.Parser {
 	return func(x interface{}) px.Parser {
 		return func(st px.ParsexState) (interface{}, error) {
 			if !ok {
-				return nil, fmt.Errorf("Less Than List Error: < opreator not found")
+				return nil, fmt.Errorf("Less Than List Error: opreator < not found")
 			}
 			y, err := ListValue(st)
 			if err != nil {
@@ -80,8 +83,6 @@ func LessThanListOption(env Env) func(x interface{}) px.Parser {
 			for _, item := range ZipLess(x.(List), y.(List)) {
 				b, err := Eval(env, L(lessp, item.(List)[0], item.(List)[1]))
 				if err != nil {
-					fmt.Println(lessp, item, b)
-					fmt.Println(err)
 					return nil, err
 				}
 				if b.(bool) {
@@ -170,6 +171,40 @@ func LessThanString(x interface{}) px.Parser {
 		return nil, ParsexSignErrorf("Except less compare string %v and %v but error: %v",
 			x, y, err)
 	}
+}
+
+func lessListIn(env Env, x, y List) (interface{}, error) {
+	lessp, ok := env.Lookup("<")
+	if !ok {
+		return nil, fmt.Errorf("Less Than List Error: < opreator not found")
+	}
+	for _, item := range ZipLess(x, y) {
+		b, err := Eval(env, L(lessp, item.(List)[0], item.(List)[1]))
+		if err != nil {
+			return nil, err
+		}
+		if b.(bool) {
+			return true, nil
+		}
+	}
+	return len(x) < len(y), nil
+}
+
+func lessListOptIn(env Env, x, y List) (interface{}, error) {
+	lessp, ok := env.Lookup("<?")
+	if !ok {
+		return nil, fmt.Errorf("Less Than Option List Error: opreator <? not found")
+	}
+	for _, item := range ZipLess(x, y) {
+		b, err := Eval(env, L(lessp, item.(List)[0], item.(List)[1]))
+		if err != nil {
+			return nil, err
+		}
+		if b.(bool) {
+			return true, nil
+		}
+	}
+	return len(x) < len(y), nil
 }
 
 func less(env Env) px.Parser {
@@ -269,6 +304,27 @@ func cmpTime(x, y tm.Time) Int {
 		return Int(-1)
 	}
 	return Int(0)
+}
+
+func cmpListIn(env Env, x, y List) (interface{}, error) {
+	ret, err := lessListIn(env, x, y)
+	if err != nil {
+		return nil, err
+	}
+	if ret.(bool) {
+		return -1, nil
+	}
+	ret, err = lessListIn(env, y, x)
+	if err != nil {
+		return nil, err
+	}
+	if ret.(bool) {
+		return 1, nil
+	}
+	if reflect.DeepEqual(x, y) {
+		return 0, nil
+	}
+	return nil, fmt.Errorf("Compare Error: Unknown howto copmare %v and %v", x, y)
 }
 
 func CmpInt(x interface{}) px.Parser {
@@ -395,6 +451,29 @@ func eqsOption(x interface{}) px.Parser {
 	}
 }
 
+func notEquals(st px.ParsexState) (interface{}, error) {
+	return px.Bind(px.AnyOne, neqs)(st)
+}
+
+func neqs(x interface{}) px.Parser {
+	return func(st px.ParsexState) (interface{}, error) {
+		y, err := st.Next(px.Always)
+		if err != nil {
+			if reflect.DeepEqual(err, io.EOF) {
+				return false, nil
+			}
+			return nil, err
+		}
+		if x == nil || y == nil {
+			return false, nil
+		}
+		if !reflect.DeepEqual(x, y) {
+			return neqs(x)(st)
+		}
+		return false, nil
+	}
+}
+
 // not equals function, NotEqual or !=, if anyone is nil, return false
 func neqsOption(st px.ParsexState) (interface{}, error) {
 	x, err := st.Next(px.Always)
@@ -420,3 +499,33 @@ func neqsOption(st px.ParsexState) (interface{}, error) {
 		}
 	}
 }
+
+var String2Values = px.Bind(StringValue, func(x interface{}) px.Parser {
+	return func(st px.ParsexState) (interface{}, error) {
+		y, err := StringValue(st)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{x, y}, nil
+	}
+})
+
+var Time2Values = px.Bind(TimeValue, func(x interface{}) px.Parser {
+	return func(st px.ParsexState) (interface{}, error) {
+		y, err := TimeValue(st)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{x, y}, nil
+	}
+})
+
+var List2Values = px.Bind(ListValue, func(x interface{}) px.Parser {
+	return func(st px.ParsexState) (interface{}, error) {
+		y, err := ListValue(st)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{x, y}, nil
+	}
+})

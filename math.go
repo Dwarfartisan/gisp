@@ -111,6 +111,30 @@ func NumberValue(st px.ParsexState) (interface{}, error) {
 	}
 }
 
+var Int2Values = px.Bind(IntValue, func(x interface{}) px.Parser {
+	return func(st px.ParsexState) (interface{}, error) {
+		y, err := IntValue(st)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{x, y}, nil
+	}
+})
+
+var Num2Values = px.Bind(NumberValue, func(x interface{}) px.Parser {
+	return func(st px.ParsexState) (interface{}, error) {
+		y, err := NumberValue(st)
+		if err != nil {
+			return nil, err
+		}
+		return []interface{}{x, y}, nil
+	}
+})
+
+func xEof(x interface{}) px.Parser {
+	return px.Bind_(px.Eof, px.Return(x))
+}
+
 // addx 实现一个parsex累加解析器，精度向上适配。我一直觉得应该有一个简单的高效版本，不需要回溯的
 // 但是目前还没有找到。
 func addx(st px.ParsexState) (interface{}, error) {
@@ -135,6 +159,22 @@ func addx(st px.ParsexState) (interface{}, error) {
 		return nil, TypeSignError{Type: FLOATMUST, Value: nerr.Value}
 	}
 	return nil, err
+}
+
+func addInts(ints ...interface{}) (interface{}, error) {
+	root := ints[0].(Int)
+	for _, i := range ints[1:] {
+		root += i.(Int)
+	}
+	return root, nil
+}
+
+func addFloats(floats ...interface{}) (interface{}, error) {
+	root := floats[0].(Float)
+	for _, f := range floats[1:] {
+		root += f.(Float)
+	}
+	return root, nil
 }
 
 // subx 实现一个左折叠的 parsex 连减解析器，精度向上适配。
@@ -184,7 +224,6 @@ func mulx(st px.ParsexState) (interface{}, error) {
 		}
 		return root, nil
 	}
-
 	if nerr, ok := err.(NotNumberError); ok {
 		return nil, TypeSignError{Type: Type{FLOAT, false}, Value: nerr.Value}
 	}

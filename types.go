@@ -43,31 +43,31 @@ var (
 	DICTMUST     = Type{DICT, false}
 )
 
-var TypeBox = Gearbox{
-	Meta: map[string]interface{}{
-		"category": "package",
-		"name":     "types",
-	},
-	Content: map[string]interface{}{
-		"int":       INTMUST,
-		"int?":      INTOPTION,
-		"float":     FLOATMUST,
-		"float?":    FLOATOPTION,
-		"string":    STRINGMUST,
-		"string?":   STRINGOPTION,
-		"time":      TIMEMUST,
-		"time?":     TIMEOPTION,
-		"dict":      DICTMUST,
-		"dict?":     DICTMUST,
-		"duration":  DURATIONMUST,
-		"duration?": DURATIONOPTION,
-		"list":      LISTMUST,
-		"list?":     LISTOPTION,
-		"atom":      ATOM,
-		"atom?":     ATOMOPTION,
-		"quote":     QUOTEMUST,
-		"quote!":    QUOTEOPTION,
-		"any":       ANYMUST,
-		"any?":      ANYOPTION,
-	},
-}
+// var TypeBox = Gearbox{
+// 	Meta: map[string]interface{}{
+// 		"category": "package",
+// 		"name":     "types",
+// 	},
+// 	Content: map[string]interface{}{
+// 		"int":       INTMUST,
+// 		"int?":      INTOPTION,
+// 		"float":     FLOATMUST,
+// 		"float?":    FLOATOPTION,
+// 		"string":    STRINGMUST,
+// 		"string?":   STRINGOPTION,
+// 		"time":      TIMEMUST,
+// 		"time?":     TIMEOPTION,
+// 		"dict":      DICTMUST,
+// 		"dict?":     DICTMUST,
+// 		"duration":  DURATIONMUST,
+// 		"duration?": DURATIONOPTION,
+// 		"list":      LISTMUST,
+// 		"list?":     LISTOPTION,
+// 		"atom":      ATOM,
+// 		"atom?":     ATOMOPTION,
+// 		"quote":     QUOTEMUST,
+// 		"quote!":    QUOTEOPTION,
+// 		"any":       ANYMUST,
+// 		"any?":      ANYOPTION,
+// 	},
+// }

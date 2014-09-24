@@ -10,35 +10,27 @@ var Time = Toolkit{
 		"category": "toolkit",
 		"name":     "time",
 	},
-	Content: map[string]Expr{
-		"now": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				_, err := GetArgs(env, px.Eof, args)
-				if err != nil {
-					return nil, err
+	Content: map[string]Functor{
+		"now": SimpleBox{
+			ParsexSignChecker(px.Eof),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					return tm.Now(), nil
 				}
-				return tm.Now(), nil
-			}
-		},
-		"parseDuration": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				params, err := GetArgs(env, px.Binds_(px.StringVal, px.Eof), args)
-				if err != nil {
-					return nil, err
+			}},
+		"parseDuration": SimpleBox{
+			ParsexSignChecker(px.Bind_(StringValue, px.Eof)),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					return tm.ParseDuration(args[0].(string))
 				}
-				return tm.ParseDuration(params[0].(string))
-			}
-		},
-		"parseTime": func(env Env) Element {
-			return func(args ...interface{}) (interface{}, error) {
-				params, err := GetArgs(env, px.Binds_(px.StringVal, px.StringVal,
-					px.Eof),
-					args)
-				if err != nil {
-					return nil, err
+			}},
+		"parseTime": SimpleBox{
+			ParsexSignChecker(px.Binds_(StringValue, StringValue, px.Eof)),
+			func(args ...interface{}) Tasker {
+				return func(env Env) (interface{}, error) {
+					return tm.Parse(args[0].(string), args[1].(string))
 				}
-				return tm.Parse(params[0].(string), params[1].(string))
-			}
-		},
+			}},
 	},
 }

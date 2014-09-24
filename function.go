@@ -66,17 +66,19 @@ func (fun Function) Task(env Env, args ...interface{}) (Lisp, error) {
 			return task, nil
 		}
 	}
+
 	if f, ok := fun.Global.Global(fun.Name()); ok {
 		switch foo := f.(type) {
-		case Func:
+		case Functor:
 			return foo.Task(env, args...)
 		case Expr:
-			return TaskBox{func(env Env) (interface{}, error) {
-				return foo(env)(args...)
-			}}, nil
+			task, err := foo(env, args...)
+			if err != nil {
+				return nil, err
+			}
+			return TaskBox{task}, nil
 		}
 	}
-
 	return nil, fmt.Errorf("not found args type sign for %v", args)
 }
 
@@ -89,32 +91,30 @@ func (fun Function) Content() []Functor {
 	return fun.content
 }
 
-func DefunExpr(env Env) Element {
-	return func(args ...interface{}) (interface{}, error) {
-		funName := args[0].(Atom)
-		_args := args[1].(List)
-		lambda, err := DeclareLambda(env, _args, args[2:]...)
-		if err != nil {
-			return nil, err
-		}
-		if f, ok := env.Local(funName.Name); ok {
-			if fun, ok := f.(Function); ok {
-				err := fun.Overload(*lambda)
-				if err == nil {
-					return fun, nil
-				} else {
-					return nil, err
-				}
-			} else {
-				return nil, fmt.Errorf("%v is defined as no Expr", funName.Name)
-			}
-		} else {
-			err := env.Defun(funName.Name, *lambda)
+func DefunExpr(env Env, args ...interface{}) (Tasker, error) {
+	funName := args[0].(Atom)
+	_args := args[1].(List)
+	lambda, err := DeclareLambda(env, _args, args[2:]...)
+	if err != nil {
+		return nil, err
+	}
+	if f, ok := env.Local(funName.Name); ok {
+		if fun, ok := f.(Function); ok {
+			err := fun.Overload(*lambda)
 			if err == nil {
-				return nil, nil
+				return Q(fun).Eval, nil
 			} else {
 				return nil, err
 			}
+		} else {
+			return nil, fmt.Errorf("%v is defined as no Expr", funName.Name)
+		}
+	} else {
+		err := env.Defun(funName.Name, *lambda)
+		if err == nil {
+			return nil, nil
+		} else {
+			return nil, err
 		}
 	}
 }

@@ -28,6 +28,19 @@ func DeclareLambda(env Env, args List, lisps ...interface{}) (*Lambda, error) {
 	return &ret, nil
 }
 
+func LambdaExpr(env Env, args ...interface{}) (Tasker, error) {
+	st := px.NewStateInMemory(args)
+	_, err := TypeAs(LIST)(st)
+	if err != nil {
+		return nil, ParsexSignErrorf("Lambda Args Error: except args list but error: %v", err)
+	}
+	lptr, err := DeclareLambda(env, args[0].(List), args[1:]...)
+	if err != nil {
+		return nil, fmt.Errorf("Lambda Args Error: except lambda tasker but error: %v", err)
+	}
+	return Q(lptr).Eval, nil
+}
+
 func (lambda *Lambda) prepareArgs(args List) {
 	l := len(args)
 	formals := make(List, len(args))
@@ -187,16 +200,4 @@ func (lambda Lambda) Task(env Env, args ...interface{}) (Lisp, error) {
 		content[idx] = data
 	}
 	return &Task{meta, content}, nil
-}
-
-func LambdaExpr(env Env) Element {
-	return func(args ...interface{}) (interface{}, error) {
-		_args := args[0].(List)
-		ret, err := DeclareLambda(env, _args, args[1:]...)
-		if err == nil {
-			return *ret, nil
-		} else {
-			return nil, err
-		}
-	}
 }

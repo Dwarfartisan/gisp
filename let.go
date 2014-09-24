@@ -2,6 +2,7 @@ package gisp
 
 import (
 	"fmt"
+	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
 // Let 实现 let 环境
@@ -10,11 +11,44 @@ type Let struct {
 	Content List
 }
 
+func LetFunc(env Env, args ...interface{}) (Lisp, error) {
+	st := px.NewStateInMemory(args)
+	_, err := TypeAs(LIST)(st)
+	if err != nil {
+		return nil, ParsexSignErrorf("Let Args Error: except args list but error: %v", err)
+	}
+
+	local := map[string]Var{}
+	vars := args[0].(List)
+	for _, v := range vars {
+		declares := v.(List)
+		varb := declares[0].(Atom)
+		slot := VarSlot(varb.Type)
+		value, err := Eval(env, (declares[1]))
+		if err != nil {
+			return nil, err
+		}
+		slot.Set(value)
+		local[varb.Name] = slot
+	}
+	meta := map[string]interface{}{
+		"local": local,
+	}
+	let := Let{meta, args}
+	return let, nil
+}
+
 // LetExpr 将 let => (let ((a, value), (b, value)...) ...) 形式构造为一个 let 环境
-func LetExpr(env Env) Element {
-	return func(args ...interface{}) (interface{}, error) {
+func LetExpr(env Env, args ...interface{}) (Tasker, error) {
+	var (
+		vars List
+		ok   bool
+	)
+	if vars, ok = args[0].(List); !ok {
+		return nil, ParsexSignErrorf("let args error: except vars list but %v", args[0])
+	}
+	return func(env Env) (interface{}, error) {
 		local := map[string]Var{}
-		vars := args[0].(List)
 		for _, v := range vars {
 			declares := v.(List)
 			varb := declares[0].(Atom)
@@ -31,7 +65,7 @@ func LetExpr(env Env) Element {
 		}
 		let := Let{meta, args}
 		return let.Eval(env)
-	}
+	}, nil
 }
 
 // Defvar 实现 Env.Defvar

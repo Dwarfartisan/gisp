@@ -14,19 +14,22 @@ func TestQuoteFound(t *testing.T) {
 }
 
 func TestQuoteCall(t *testing.T) {
-	g := NewGisp(map[string]Toolbox{
+	gisp := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 	})
-	gisp := *g
 	list := L(Int(1), Int(1), Int(2), Int(3), Int(5), Int(8), Int(13), Int(21))
 	q, ok := gisp.Lookup("quote")
 	if !ok {
 		t.Fatalf("except found quote in axioms")
 	}
-	quote := q.(Expr)
-	fb, err := quote(&gisp)(list)
+	quote := q.(Functor)
+	quoted, err := quote.Task(gisp, list)
 	if err != nil {
-		t.Fatalf("except quote eval but %v", err)
+		t.Fatalf("except quote task but %v", err)
+	}
+	fb, err := quoted.Eval(gisp)
+	if err != nil {
+		t.Fatalf("except quote the list but %v", err)
 	}
 	fbq := Quote{list}
 	if !reflect.DeepEqual(fb, fbq) {
@@ -50,10 +53,9 @@ func TestQuoteEval(t *testing.T) {
 }
 
 func TestGetEval(t *testing.T) {
-	g := NewGisp(map[string]Toolbox{
+	gisp := NewGisp(map[string]Toolbox{
 		"axioms": Axiom,
 	})
-	gisp := *g
 	_, err := gisp.Parse("(var pi 3.14)")
 	if err != nil {
 		t.Fatalf("except var pi as 3.14 but error: %v", err)
@@ -105,7 +107,7 @@ func TestSetBracket(t *testing.T) {
 	if !reflect.DeepEqual(pi, 3.14) {
 		t.Fatalf("except got pi is 3.14 but %v", pi)
 	}
-	_, err = gisp.Parse("(set box[\"c\"] 3.14)")
+	_, err = gisp.Parse("(set 'box[\"c\"] 3.14)")
 	if err != nil {
 		t.Fatalf("except got pi is 3.14 but error: %v", err)
 	}

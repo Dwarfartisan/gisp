@@ -37,16 +37,26 @@ func (list List) Eval(env Env) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-	case Func:
+	case Functor:
 		lisp = fun
+	// case Func:
+	// 	lisp = fun
 	case Expr:
 		lisp = fun
 	case Dot:
 		lisp = fun
+	case reflect.Value:
+		if fun.Kind() == reflect.Func {
+			lisp = fun
+		}
 	}
 	switch item := lisp.(type) {
 	case Expr:
-		return item(env)(list[1:]...)
+		task, err := item(env, list[1:]...)
+		if err != nil {
+			return nil, err
+		}
+		return task(env)
 	case Task:
 		return item.Eval(env)
 	case Go:
@@ -57,12 +67,12 @@ func (list List) Eval(env Env) (interface{}, error) {
 			return nil, err
 		}
 		return lisp.Eval(env)
-	case Func:
-		lisp, err := item.Task(env, list[1:]...)
+	case Functor:
+		task, err := item.Task(env, list[1:]...)
 		if err != nil {
 			return nil, err
 		}
-		return lisp.Eval(env)
+		return task.Eval(env)
 	case Let:
 		return item.Eval(env)
 	case Dot:
@@ -71,7 +81,14 @@ func (list List) Eval(env Env) (interface{}, error) {
 			return nil, err
 		}
 		if expr, ok := v.(Expr); ok {
-			return expr(env)(list[1:]...)
+			return expr(env, list[1:]...)
+		}
+		if functor, ok := v.(Functor); ok {
+			tasker, err := functor.Task(env, list[1:]...)
+			if err != nil {
+				return nil, err
+			}
+			return tasker.Eval(env)
 		}
 		value := v.(reflect.Value)
 		if value.Kind() == reflect.Func {
@@ -83,7 +100,13 @@ func (list List) Eval(env Env) (interface{}, error) {
 			for idx, arg := range args {
 				values[idx] = reflect.ValueOf(arg)
 			}
-			res, err := InReflects(value.Call(values))
+			var revs []reflect.Value
+			if value.Type().IsVariadic() {
+				revs = value.CallSlice(values)
+			} else {
+				revs = value.Call(values)
+			}
+			res, err := InReflects(revs)
 			if err != nil {
 				return nil, err
 			}
@@ -97,7 +120,34 @@ func (list List) Eval(env Env) (interface{}, error) {
 				return data, nil
 			}
 		}
-
+	case reflect.Value:
+		args, err := Evals(env, list[1:]...)
+		if err != nil {
+			return nil, err
+		}
+		values := make([]reflect.Value, len(args))
+		for idx, arg := range args {
+			values[idx] = reflect.ValueOf(arg)
+		}
+		var revs []reflect.Value
+		if item.Type().IsVariadic() {
+			revs = item.CallSlice(values)
+		} else {
+			revs = item.Call(values)
+		}
+		res, err := InReflects(revs)
+		if err != nil {
+			return nil, err
+		}
+		data, err := Evals(env, res...)
+		if err != nil {
+			return nil, err
+		}
+		if len(data) == 1 {
+			return data[0], nil
+		} else {
+			return data, nil
+		}
 	}
 	return nil, fmt.Errorf("%v:%v is't callable", list[0], reflect.TypeOf(list[0]))
 }
@@ -144,11 +194,18 @@ func (l List) Index(index Int) (interface{}, error) {
 func Zip(x, y List) List {
 	xlen := len(x)
 	ylen := len(y)
-	l := MaxInts(Int(xlen), Int(ylen))
-	ret := make(List, l)
-	for i := 0; i < int(l); i++ {
-		idx := Int(i)
-		ret[i] = L(x.indexn(idx), y.indexn(idx))
+	max := MaxInts(Int(xlen), Int(ylen))
+	min := MinInts(Int(xlen), Int(ylen))
+	ret := ZipLess(x, y)
+	nils := make(List, max-min)
+	for idx, _ := range nils {
+		nils[idx] = nil
+	}
+	if xlen > int(min) {
+		ret = append(ret, ZipLess(x[min:], nils)...)
+	}
+	if ylen > int(min) {
+		ret = append(ret, ZipLess(nils, y[min:])...)
 	}
 	return ret
 }
