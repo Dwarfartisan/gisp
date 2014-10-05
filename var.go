@@ -67,6 +67,12 @@ func DefStrict(typ reflect.Type) StrictVar {
 	return StrictVar{slot}
 }
 
+func StrictVarAs(x interface{}) StrictVar {
+	slot := DefStrict(reflect.TypeOf(x))
+	slot.Set(x)
+	return slot
+}
+
 func VarSlot(typ Type) Var {
 	if typ.Option() {
 		ret := DefOption(typ.Type)

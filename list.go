@@ -91,6 +91,14 @@ func (list List) Eval(env Env) (interface{}, error) {
 			}
 			return tasker(env)
 		}
+		//if expr, ok := v.(LispExpr); ok {
+		if expr, ok := v.(func(Env, ...interface{}) (Lisp, error)); ok {
+			lisp, err := expr(env, list[1:]...)
+			if err != nil {
+				return nil, err
+			}
+			return lisp.Eval(env)
+		}
 		if functor, ok := v.(Functor); ok {
 			tasker, err := functor.Task(env, list[1:]...)
 			if err != nil {
@@ -157,7 +165,7 @@ func (list List) Eval(env Env) (interface{}, error) {
 			return data, nil
 		}
 	}
-	return nil, fmt.Errorf("%v:%v is't callable", list[0], reflect.TypeOf(list[0]))
+	return nil, fmt.Errorf("%v(%v):%v is't callable", list[0], lisp, reflect.TypeOf(lisp))
 }
 
 func (l List) indexn(index Int) interface{} {

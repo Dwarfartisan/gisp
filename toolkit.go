@@ -21,11 +21,14 @@ func (tk Toolkit) Lookup(name string) (interface{}, bool) {
 
 // Local 实现 Env.Local
 func (tk Toolkit) Local(name string) (interface{}, bool) {
-	if v, ok := tk.Content[name]; ok {
-		return v, true
+	if value, ok := tk.Content[name]; ok {
+		if slot, ok := value.(Var); ok {
+			return slot.Get(), true
+		}
+		return value, true
+	} else {
+		return nil, false
 	}
-	return nil, false
-
 }
 
 // Global 实现 Env.Global 。如果 Meta 中没有注册 global ，视作顶层环境，返回notfound
