@@ -30,6 +30,23 @@ var Parsex Toolkit = Toolkit{
 				return nil, fmt.Errorf("Parsex Error: Except create a state from a string or List but %v", data)
 			}
 		},
+		"s2str":func(env Env, args...interface{})(Lisp, error){
+			if len(args) != 1 {
+				return nil, ParsexSignErrorf("Slice to string Arg Error:except args has 1 arg.")
+			}
+			param, err := Eval(env, args[0])
+			if err != nil {
+				return nil, err
+			}
+			var (
+				slice []interface{}
+				ok bool
+			)
+			if slice, ok = param.([]interface{}); !ok {
+				return nil, ParsexSignErrorf("s2str Arg Error:except 1 []interface{} arg.")
+			}
+			return Q(px.ExtractString(slice)), nil
+		},
 		"anyone": ParsexBox(px.AnyOne),
 		"one": func(env Env, args ...interface{}) (Lisp, error) {
 			if len(args) != 1 {

@@ -129,17 +129,27 @@ func (gisp Gisp) Global(name string) (interface{}, bool) {
 
 func (gisp *Gisp) Parse(code string) (interface{}, error) {
 	st := p.MemoryParseState(code)
-
-	value, err := ValueParserExt(gisp)(st)
-	if err != nil {
-		return nil, err
+	var v interface{}
+	var e error
+	for {
+		Skip(st)
+		_, err := p.Eof(st)
+		if err == nil {
+			break
+		}
+		value, err := ValueParserExt(gisp)(st)
+		if err != nil {
+			return nil, err
+		}
+		switch lisp := value.(type) {
+		case Lisp:
+			 v, e = lisp.Eval(gisp)
+		default:
+			 v = lisp
+			 e = nil
+		}
 	}
-	switch lisp := value.(type) {
-	case Lisp:
-		return lisp.Eval(gisp)
-	default:
-		return lisp, nil
-	}
+	return v, e
 }
 
 func (gisp *Gisp) Eval(lisps ...interface{}) (interface{}, error) {

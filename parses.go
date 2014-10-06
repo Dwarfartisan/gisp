@@ -6,6 +6,9 @@ import (
 	"strconv"
 )
 
+var Space = p.Either(p.Try(p.Space), p.NewLine)
+var Skip = p.Skip(Space)
+
 // IntParser 解析整数
 func IntParser(st p.ParseState) (interface{}, error) {
 	i, err := p.Int(st)
