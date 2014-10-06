@@ -340,7 +340,7 @@ var Parsex Toolkit = Toolkit{
 		},
 		"skip": func(env Env, args ...interface{}) (Lisp, error) {
 			if len(args) != 1 {
-				return nil, ParsexSignErrorf("Parsex Parser Maybe Error: only accept one parsex parser as arg but %v", args)
+				return nil, ParsexSignErrorf("Parsex Parser Skip Error: only accept one parsex parser as arg but %v", args)
 			}
 			param, err := Eval(env, args[0])
 			if err != nil {

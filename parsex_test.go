@@ -20,7 +20,7 @@ func TestParsexBasic(t *testing.T) {
 	if err != nil {
 		t.Fatalf("except \"%v\" pass test many1 digit but error:%v", data, err)
 	}
-//	code := fmt.Sprintf("(var st (px.state \"%v\"))", data)
+
 	src := "(let ((st (px.state \"" + data + `")))
 	(var data ((px.many1 px.digit) st))
 	(px.s2str data))
