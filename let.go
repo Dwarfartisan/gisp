@@ -44,6 +44,9 @@ func LetExpr(env Env, args ...interface{}) (Tasker, error) {
 		vars List
 		ok   bool
 	)
+	if len(args) < 1 {
+		return nil, ParsexSignErrorf("let args error: except vars list at last but a empty let as (let )")
+	}
 	if vars, ok = args[0].(List); !ok {
 		return nil, ParsexSignErrorf("let args error: except vars list but %v", args[0])
 	}
@@ -63,7 +66,7 @@ func LetExpr(env Env, args ...interface{}) (Tasker, error) {
 		meta := map[string]interface{}{
 			"local": local,
 		}
-		let := Let{meta, args}
+		let := Let{meta, args[1:]}
 		return let.Eval(env)
 	}, nil
 }
@@ -73,7 +76,7 @@ func (let Let) Defvar(name string, slot Var) error {
 	if _, ok := let.Local(name); ok {
 		return fmt.Errorf("local name %s is exists", name)
 	}
-	local := let.Meta["local"].(map[string]interface{})
+	local := let.Meta["local"].(map[string]Var)
 	local[name] = slot
 	return nil
 }
@@ -108,9 +111,12 @@ func (let Let) Setvar(name string, value interface{}) error {
 
 // Local 实现 Env.Local
 func (let Let) Local(name string) (interface{}, bool) {
-	local := let.Meta["local"].(map[string]interface{})
-	value, ok := local[name]
-	return value, ok
+	local := let.Meta["local"].(map[string]Var)
+	if slot, ok := local[name]; ok {
+		return slot.Get(), true
+	} else {
+		return nil, false
+	}
 }
 
 // Lookup 实现 Env.Lookup
@@ -138,8 +144,11 @@ func (let Let) Eval(env Env) (interface{}, error) {
 	case 1:
 		return Eval(let, let.Content[0])
 	default:
-		for _, Expr := range let.Content[:l-2] {
-			Eval(let, Expr)
+		for _, Expr := range let.Content[:l-1] {
+			_, err := Eval(let, Expr)
+			if err != nil {
+				return nil, err
+			}
 		}
 		Expr := let.Content[l-1]
 		return Eval(let, Expr)

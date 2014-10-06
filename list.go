@@ -165,7 +165,8 @@ func (list List) Eval(env Env) (interface{}, error) {
 			return data, nil
 		}
 	}
-	return nil, fmt.Errorf("%v(%v):%v is't callable", list[0], lisp, reflect.TypeOf(lisp))
+	return nil, fmt.Errorf("List %v Eval Error: %v(%v):%v is't callable",
+		list, list[0], lisp, reflect.TypeOf(lisp))
 }
 
 func (l List) indexn(index Int) interface{} {

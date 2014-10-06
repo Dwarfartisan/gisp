@@ -1,7 +1,7 @@
 package gisp
 
 import (
-	"fmt"
+	//"fmt"
 	px "github.com/Dwarfartisan/goparsec/parsex"
 	"testing"
 	"reflect"
@@ -20,10 +20,11 @@ func TestParsexBasic(t *testing.T) {
 	if err != nil {
 		t.Fatalf("except \"%v\" pass test many1 digit but error:%v", data, err)
 	}
-	code := fmt.Sprintf("(var st (px.state \"%v\"))", data)
-	src := code + `
+//	code := fmt.Sprintf("(var st (px.state \"%v\"))", data)
+	src := "(let ((st (px.state \"" + data + `")))
 	(var data ((px.many1 px.digit) st))
-	(px.s2str data)`
+	(px.s2str data))
+	`
 	gre, err := g.Parse(src)
 	if err != nil {
 		t.Fatalf("except \"%v\" pass gisp many1 digit but error:%v", src, err)
