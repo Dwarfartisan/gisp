@@ -244,7 +244,7 @@ var Parsec Toolkit = Toolkit{
 			var parser Parsecer
 			var ok bool
 			if parser, ok = prs.(Parsecer); !ok {
-				return nil, ParsexSignErrorf("Bind Args Error:except first arg is a parsec parser.")
+				return nil, ParsexSignErrorf("Bind Args Error:except first arg is a parsecer.")
 			}
 			f, err := Eval(env, args[1])
 			if err != nil {

@@ -3,8 +3,9 @@ package gisp
 import (
 	"fmt"
 	//	p "github.com/Dwarfartisan/goparsec/parsex"
-	px "github.com/Dwarfartisan/goparsec/parsex"
 	"reflect"
+
+	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
 var Parsex Toolkit = Toolkit{
@@ -30,7 +31,7 @@ var Parsex Toolkit = Toolkit{
 				return nil, fmt.Errorf("Parsex Error: Except create a state from a string or List but %v", data)
 			}
 		},
-		"s2str":func(env Env, args...interface{})(Lisp, error){
+		"s2str": func(env Env, args ...interface{}) (Lisp, error) {
 			if len(args) != 1 {
 				return nil, ParsexSignErrorf("Slice to string Arg Error:except args has 1 arg.")
 			}
@@ -40,7 +41,7 @@ var Parsex Toolkit = Toolkit{
 			}
 			var (
 				slice []interface{}
-				ok bool
+				ok    bool
 			)
 			if slice, ok = param.([]interface{}); !ok {
 				return nil, ParsexSignErrorf("s2str Arg Error:except 1 []interface{} arg.")
@@ -76,7 +77,7 @@ var Parsex Toolkit = Toolkit{
 			if err != nil {
 				return nil, err
 			}
-			return ParsexBox(px.Rune(param.(rune))), nil
+			return ParsexBox(px.Rune(rune(param.(Rune)))), nil
 		},
 		"anyrune":    ParsexBox(px.AnyRune),
 		"anyintx":    ParsexBox(px.AnyInt),
@@ -290,15 +291,72 @@ var Parsex Toolkit = Toolkit{
 			return ParsexBox(px.NoneOf(params)), nil
 		},
 		"between": func(env Env, args ...interface{}) (Lisp, error) {
-			ptype := reflect.TypeOf((px.Parser)(nil))
+			ptype := reflect.TypeOf((*Parsexer)(nil)).Elem()
 			params, err := GetArgs(env, px.UnionAll(TypeAs(ptype), TypeAs(ptype), TypeAs(ptype), px.Eof), args)
 			if err != nil {
 				return nil, err
 			}
 			return ParsexBox(px.Between(params[0].(Parsexer).Parser, params[1].(Parsexer).Parser, params[2].(Parsexer).Parser)), nil
 		},
+		"bind": func(env Env, args ...interface{}) (Lisp, error) {
+			if len(args) != 2 {
+				return nil, ParsexSignErrorf("Bind Args Error:except 2 args.")
+			}
+			prs, err := Eval(env, args[0])
+			if err != nil {
+				return nil, err
+			}
+			var parser Parsexer
+			var ok bool
+			if parser, ok = prs.(Parsexer); !ok {
+				return nil, ParsexSignErrorf("Bind Args Error:except first arg is a parsexer.")
+			}
+			f, err := Eval(env, args[1])
+			if err != nil {
+				return nil, err
+			}
+			switch fun := f.(type) {
+			case func(interface{}) px.Parser:
+				return ParsexBox(px.Bind(parser.Parser, fun)), nil
+			case Functor:
+				return ParsexBox(px.Bind(parser.Parser, func(x interface{}) px.Parser {
+					tasker, err := fun.Task(env, x)
+					if err != nil {
+						return func(st px.ParsexState) (interface{}, error) {
+							return nil, err
+						}
+					}
+					pr, err := tasker.Eval(env)
+					if err != nil {
+						return func(st px.ParsexState) (interface{}, error) {
+							return nil, err
+						}
+					}
+					switch parser_ := pr.(type) {
+					case px.Parser:
+						return parser_
+					case Parsexer:
+						return parser_.Parser
+					default:
+						return func(st px.ParsexState) (interface{}, error) {
+							return nil, ParsexSignErrorf("excpet got a parser but %v", pr)
+						}
+					}
+				})), nil
+			default:
+				return nil, ParsexSignErrorf("excpet got a parser but %v", prs)
+			}
+		},
+		"bind_": func(env Env, args ...interface{}) (Lisp, error) {
+			ptype := reflect.TypeOf((*Parsecer)(nil)).Elem()
+			params, err := GetArgs(env, px.UnionAll(TypeAs(ptype), TypeAs(ptype), px.Eof), args)
+			if err != nil {
+				return nil, err
+			}
+			return ParsexBox(px.Bind_(params[0].(Parsexer).Parser, params[1].(Parsexer).Parser)), nil
+		},
 		"sepby1": func(env Env, args ...interface{}) (Lisp, error) {
-			ptype := reflect.TypeOf((px.Parser)(nil))
+			ptype := reflect.TypeOf((*Parsexer)(nil)).Elem()
 			params, err := GetArgs(env, px.UnionAll(TypeAs(ptype), TypeAs(ptype), px.Eof), args)
 			if err != nil {
 				return nil, err
@@ -306,7 +364,7 @@ var Parsex Toolkit = Toolkit{
 			return ParsexBox(px.SepBy1(params[0].(Parsexer).Parser, params[1].(Parsexer).Parser)), nil
 		},
 		"sepby": func(env Env, args ...interface{}) (Lisp, error) {
-			ptype := reflect.TypeOf((px.Parser)(nil))
+			ptype := reflect.TypeOf((*Parsexer)(nil)).Elem()
 			params, err := GetArgs(env, px.UnionAll(TypeAs(ptype), TypeAs(ptype), px.Eof), args)
 			if err != nil {
 				return nil, err
@@ -314,7 +372,7 @@ var Parsex Toolkit = Toolkit{
 			return ParsexBox(px.SepBy(params[0].(Parsexer).Parser, params[1].(Parsexer).Parser)), nil
 		},
 		"manytil": func(env Env, args ...interface{}) (Lisp, error) {
-			ptype := reflect.TypeOf((px.Parser)(nil))
+			ptype := reflect.TypeOf((*Parsexer)(nil)).Elem()
 			params, err := GetArgs(env, px.UnionAll(TypeAs(ptype), TypeAs(ptype), px.Eof), args)
 			if err != nil {
 				return nil, err
