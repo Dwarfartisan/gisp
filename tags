@@ -1,0 +1,122 @@
+AA	atom.go	/^func AA(name string) Atom {$/
+AtomParserExt	atom.go	/^func AtomParserExt(env Env) p.Parser {$/
+Bind	compare.go	/^var String2Values = px.Bind(StringValue, func(x in/
+Bind_	bool.go	/^var NilParser = p.Bind_(p.String("nil"), p.Return(/
+BoxExpr	functor.go	/^func BoxExpr(expr TaskExpr) TaskerBox {$/
+BoxExprx	functor.go	/^func BoxExprx(asign ArgsSignChecker, expr TaskExpr/
+BracketSuffix	suffix.go	/^func BracketSuffix(x interface{}) p.Parser {$/
+BracketSuffixParser	suffix.go	/^func BracketSuffixParser(x interface{}) p.Parser {/
+CmpFloat	compare.go	/^func CmpFloat(x interface{}) px.Parser {$/
+CmpInt	compare.go	/^func CmpInt(x interface{}) px.Parser {$/
+CmpNumber	compare.go	/^func CmpNumber(x interface{}) px.Parser {$/
+CmpString	compare.go	/^func CmpString(x interface{}) px.Parser {$/
+CmpTime	compare.go	/^func CmpTime(x interface{}) px.Parser {$/
+DefOption	var.go	/^func DefOption(typ reflect.Type) OptionVar {$/
+DefStrict	var.go	/^func DefStrict(typ reflect.Type) StrictVar {$/
+DotSuffixParser	suffix.go	/^func DotSuffixParser(x interface{}) p.Parser {$/
+Elem	types.go	/^	ANY      = reflect.TypeOf((*interface{})(nil)).El/
+EvalExpr	functor.go	/^func EvalExpr(expr LispExpr) EvalBox {$/
+ExtExpr	proposition.go	/^func ExtExpr(extExpr func(env Env) px.Parser) Lisp/
+ExtReverseExpr	proposition.go	/^func ExtReverseExpr(expr func(Env) px.Parser) Lisp/
+ExtTypeParser	type.go	/^func ExtTypeParser(env Env) p.Parser {$/
+LessThanFloat	compare.go	/^func LessThanFloat(x interface{}) px.Parser {$/
+LessThanInt	compare.go	/^func LessThanInt(x interface{}) px.Parser {$/
+LessThanList	compare.go	/^func LessThanList(env Env) func(x interface{}) px./
+LessThanListOption	compare.go	/^func LessThanListOption(env Env) func(x interface{/
+LessThanNil	compare.go	/^func LessThanNil(x interface{}) px.Parser {$/
+LessThanNumber	compare.go	/^func LessThanNumber(x interface{}) px.Parser {$/
+LessThanString	compare.go	/^func LessThanString(x interface{}) px.Parser {$/
+LessThanTime	compare.go	/^func LessThanTime(x interface{}) px.Parser {$/
+ListParserExt	parses.go	/^func ListParserExt(env Env) p.Parser {$/
+Logf	parsec_test.go	/^    t.Logf("from gisp: %v", gre)$/
+MapTypeParserExt	type.go	/^func MapTypeParserExt(env Env) p.Parser {$/
+MaxInts	avg.go	/^func MaxInts(data ...Int) Int {$/
+MinInts	avg.go	/^func MinInts(data ...Int) Int {$/
+NotExpr	proposition.go	/^func NotExpr(expr LispExpr) LispExpr {$/
+NotParsex	proposition.go	/^func NotParsex(pxExpr px.Parser) px.Parser {$/
+OrExpr	proposition.go	/^func OrExpr(x, y px.Parser) LispExpr {$/
+OrExtExpr	proposition.go	/^func OrExtExpr(x, y func(Env) px.Parser) LispExpr /
+OrExtRExpr	proposition.go	/^func OrExtRExpr(x px.Parser, y func(Env) px.Parser/
+ParsecBox	parsec.go	/^func ParsecBox(parser p.Parser) Lisp {$/
+ParsexBox	parsex.go	/^func ParsexBox(parser px.Parser) Lisp {$/
+ParsexExpr	proposition.go	/^func ParsexExpr(pxExpr px.Parser) LispExpr {$/
+ParsexReverseExpr	proposition.go	/^func ParsexReverseExpr(pxExpr px.Parser) LispExpr /
+ParsexSignErrorf	function.go	/^func ParsexSignErrorf(message string, args ...inte/
+Q	quote.go	/^func Q(x interface{}) Quote {$/
+QuoteParserExt	parses.go	/^func QuoteParserExt(env Env) p.Parser {$/
+StrictVarAs	var.go	/^func StrictVarAs(x interface{}) StrictVar {$/
+SuffixParser	suffix.go	/^func SuffixParser(prefix interface{}) p.Parser {$/
+TestAddExpr	math_test.go	/^func TestAddExpr(t *testing.T) {$/
+TestAddx1	math_test.go	/^func TestAddx1(t *testing.T) {$/
+TestAtomParse1	atom_test.go	/^func TestAtomParse1(t *testing.T) {$/
+TestAtomParse2	atom_test.go	/^func TestAtomParse2(t *testing.T) {$/
+TestAtomParse3	atom_test.go	/^func TestAtomParse3(t *testing.T) {$/
+TestBracketBasic	bracket_test.go	/^func TestBracketBasic(t *testing.T) {$/
+TestDotMap	dot_test.go	/^func TestDotMap(t *testing.T) {$/
+TestDotParser	dot_test.go	/^func TestDotParser(t *testing.T) {$/
+TestFloatParser1	float_test.go	/^func TestFloatParser1(t *testing.T) {$/
+TestFloatParser2	float_test.go	/^func TestFloatParser2(t *testing.T) {$/
+TestFloatParser3	float_test.go	/^func TestFloatParser3(t *testing.T) {$/
+TestFloatParser4	float_test.go	/^func TestFloatParser4(t *testing.T) {$/
+TestFloatParser5	float_test.go	/^func TestFloatParser5(t *testing.T) {$/
+TestGetEval	axiom_test.go	/^func TestGetEval(t *testing.T) {$/
+TestIntParser1	int_test.go	/^func TestIntParser1(t *testing.T) {$/
+TestIntParser2	int_test.go	/^func TestIntParser2(t *testing.T) {$/
+TestIntParser3	int_test.go	/^func TestIntParser3(t *testing.T) {$/
+TestLessList	compare_test.go	/^func TestLessList(t *testing.T) {$/
+TestLessNumber	compare_test.go	/^func TestLessNumber(t *testing.T) {$/
+TestLessOptionList	compare_test.go	/^func TestLessOptionList(t *testing.T) {$/
+TestLessOrEqualList	compare_test.go	/^func TestLessOrEqualList(t *testing.T) {$/
+TestLessString	compare_test.go	/^func TestLessString(t *testing.T) {$/
+TestMoneyMul	function_test.go	/^func TestMoneyMul(t *testing.T) {$/
+TestMulAutoOverload	function_test.go	/^func TestMulAutoOverload(t *testing.T) {$/
+TestMulExpr	math_test.go	/^func TestMulExpr(t *testing.T) {$/
+TestOptionGetNil	var_test.go	/^func TestOptionGetNil(t *testing.T) {$/
+TestOptionGetNilType	var_test.go	/^func TestOptionGetNilType(t *testing.T) {$/
+TestOptionSetNil	var_test.go	/^func TestOptionSetNil(t *testing.T) {$/
+TestOptionSetValid	var_test.go	/^func TestOptionSetValid(t *testing.T) {$/
+TestParseCallToolkitFunction	parser_test.go	/^func TestParseCallToolkitFunction(t *testing.T) {$/
+TestParseExt	parser_test.go	/^func TestParseExt(t *testing.T) {$/
+TestParseFloat	parser_test.go	/^func TestParseFloat(t *testing.T) {$/
+TestQuoteCall	axiom_test.go	/^func TestQuoteCall(t *testing.T) {$/
+TestQuoteEval	axiom_test.go	/^func TestQuoteEval(t *testing.T) {$/
+TestSetBracket	axiom_test.go	/^func TestSetBracket(t *testing.T) {$/
+TestStrictGetNil	var_test.go	/^func TestStrictGetNil(t *testing.T) {$/
+TestStrictGetNilType	var_test.go	/^func TestStrictGetNilType(t *testing.T) {$/
+TestStrictSet	var_test.go	/^func TestStrictSet(t *testing.T) {$/
+TestStrictSetNil	var_test.go	/^func TestStrictSetNil(t *testing.T) {$/
+TestStrictSetValid	var_test.go	/^func TestStrictSetValid(t *testing.T) {$/
+TestTypeAny	types_test.go	/^func TestTypeAny(t *testing.T) {$/
+TestTypeAtom	types_test.go	/^func TestTypeAtom(t *testing.T) {$/
+TestTypeFloat	types_test.go	/^func TestTypeFloat(t *testing.T) {$/
+TestTypeInt	types_test.go	/^func TestTypeInt(t *testing.T) {$/
+TestTypeString	types_test.go	/^func TestTypeString(t *testing.T) {$/
+TestVarEval	axiom_test.go	/^func TestVarEval(t *testing.T) {$/
+TestZipNil	list_test.go	/^func TestZipNil(t *testing.T) {$/
+TestingBoolParse1	bool_test.go	/^func TestingBoolParse1(t *testing.T) {$/
+TypeAs	args.go	/^func TypeAs(typ reflect.Type) px.Parser {$/
+ValueParserExt	parses.go	/^func ValueParserExt(env Env) p.Parser {$/
+VarSlot	var.go	/^func VarSlot(typ Type) Var {$/
+argParser	args.go	/^func argParser(atom Atom) px.Parser {$/
+argRing	args.go	/^func argRing(atom Atom) func(interface{}) px.Parse/
+bodyParserExt	parses.go	/^func bodyParserExt(env Env) p.Parser {$/
+bracketSuffix	suffix.go	/^func bracketSuffix(x interface{}) p.Parser {$/
+cmpFloat	compare.go	/^func cmpFloat(x, y Float) Int {$/
+cmpInt	compare.go	/^func cmpInt(x, y Int) Int {$/
+cmpString	compare.go	/^func cmpString(x, y string) Int {$/
+cmpTime	compare.go	/^func cmpTime(x, y tm.Time) Int {$/
+dotSuffix	suffix.go	/^func dotSuffix(x interface{}) p.Parser {$/
+eqs	compare.go	/^func eqs(x interface{}) px.Parser {$/
+eqsOption	compare.go	/^func eqsOption(x interface{}) px.Parser {$/
+floatSignError	function_test.go	/^func floatSignError(value interface{}) error {$/
+func	atom.go	/^func (atom Atom) String() string {$/
+import	args.go	/^import ($/
+lambda	lambda.go	/^\/\/ DeclareLambda 构造 Lambda 表达式 (lambda/
+less	compare.go	/^func less(env Env) px.Parser {$/
+lessOption	compare.go	/^func lessOption(env Env) px.Parser {$/
+moneySignError	function_test.go	/^func moneySignError(value interface{}) error {$/
+mrmul	function_test.go	/^func mrmul() mrMul {$/
+neqs	compare.go	/^func neqs(x interface{}) px.Parser {$/
+stopWord	type.go	/^func stopWord(x interface{}) p.Parser {$/
+typeName	type.go	/^func typeName(word string) p.Parser {$/
+xEof	math.go	/^func xEof(x interface{}) px.Parser {$/

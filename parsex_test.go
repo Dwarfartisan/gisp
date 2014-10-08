@@ -2,9 +2,10 @@ package gisp
 
 import (
 	//"fmt"
-	px "github.com/Dwarfartisan/goparsec/parsex"
-	"testing"
 	"reflect"
+	"testing"
+
+	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
 func TestParsexBasic(t *testing.T) {
@@ -31,7 +32,7 @@ func TestParsexBasic(t *testing.T) {
 	}
 	t.Logf("from gisp: %v", gre)
 	t.Logf("from parsex: %v", pxre)
-	if !reflect.DeepEqual(pxre, gre){
+	if !reflect.DeepEqual(pxre, gre) {
 		t.Fatalf("except got \"%v\" from gisp equal \"%v\" from parsex", gre, pxre)
 	}
 }

@@ -1,9 +1,9 @@
 package gisp
 
 import (
-	"fmt"
-	p "github.com/Dwarfartisan/goparsec"
 	"strconv"
+
+	p "github.com/Dwarfartisan/goparsec"
 )
 
 var Space = p.Either(p.Try(p.Space), p.NewLine)
@@ -23,7 +23,8 @@ func IntParser(st p.ParseState) (interface{}, error) {
 
 }
 
-var EscapeChar = p.Bind_(p.Rune('\\'), func(st p.ParseState) (interface{}, error) {
+// 用于string
+var EscapeChars = p.Bind_(p.Rune('\\'), func(st p.ParseState) (interface{}, error) {
 	r, err := p.OneOf("nrt\"\\")(st)
 	if err == nil {
 		ru := r.(rune)
@@ -32,9 +33,6 @@ var EscapeChar = p.Bind_(p.Rune('\\'), func(st p.ParseState) (interface{}, error
 			return '\r', nil
 		case 'n':
 			return '\n', nil
-		// FIXME:引号的解析偷懒了，单双引号的应该分开。
-		case '\'':
-			return '\'', nil
 		case '"':
 			return '"', nil
 		case '\\':
@@ -49,14 +47,41 @@ var EscapeChar = p.Bind_(p.Rune('\\'), func(st p.ParseState) (interface{}, error
 	}
 })
 
+//用于rune
+var EscapeCharr = p.Bind_(p.Rune('\\'), func(st p.ParseState) (interface{}, error) {
+	r, err := p.OneOf("nrt'\\")(st)
+	if err == nil {
+		ru := r.(rune)
+		switch ru {
+		case 'r':
+			return '\r', nil
+		case 'n':
+			return '\n', nil
+		case '\'':
+			return '\'', nil
+		case '\\':
+			return '\\', nil
+		case 't':
+			return '\t', nil
+		default:
+			return nil, st.Trap("Unknown escape sequence \\%c", r)
+		}
+	} else {
+		return nil, err
+	}
+})
+
 var RuneParser = p.Bind(
 	p.Between(p.Rune('\''), p.Rune('\''),
-		p.Either(p.Try(EscapeChar), p.NoneOf("'"))),
-	p.ReturnString)
+		p.Either(p.Try(EscapeCharr), p.NoneOf("'"))),
+	func(x interface{}) p.Parser {
+		return p.Return(Rune(x.(rune)))
+	},
+)
 
 var StringParser = p.Bind(
 	p.Between(p.Rune('"'), p.Rune('"'),
-		p.Many(p.Either(p.Try(EscapeChar), p.NoneOf("\"")))),
+		p.Many(p.Either(p.Try(EscapeChars), p.NoneOf("\"")))),
 	p.ReturnString)
 
 func bodyParser(st p.ParseState) (interface{}, error) {
@@ -122,7 +147,6 @@ func QuoteParserExt(env Env) p.Parser {
 		if err == nil {
 			return Quote{lisp}, nil
 		} else {
-			fmt.Println(err)
 			return nil, err
 		}
 	}
@@ -132,7 +156,6 @@ func ValueParser(st p.ParseState) (interface{}, error) {
 	value, err := p.Choice(p.Try(StringParser),
 		p.Try(FloatParser),
 		p.Try(IntParser),
-		p.Try(QuoteParser),
 		p.Try(RuneParser),
 		p.Try(StringParser),
 		p.Try(BoolParser),
@@ -149,7 +172,6 @@ func ValueParserExt(env Env) p.Parser {
 		value, err := p.Choice(p.Try(StringParser),
 			p.Try(FloatParser),
 			p.Try(IntParser),
-			p.Try(QuoteParser),
 			p.Try(RuneParser),
 			p.Try(StringParser),
 			p.Try(BoolParser),
