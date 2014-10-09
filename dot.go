@@ -2,8 +2,9 @@ package gisp
 
 import (
 	"fmt"
-	p "github.com/Dwarfartisan/goparsec"
 	"reflect"
+
+	p "github.com/Dwarfartisan/goparsec"
 )
 
 type NotStructError struct {
@@ -20,21 +21,6 @@ type NameInvalid struct {
 
 func (err NameInvalid) Error() string {
 	return fmt.Sprintf("name %s is invalid", err.Name)
-}
-
-type DotQ struct {
-	obj  interface{}
-	expr Quote
-}
-
-func (dotq DotQ) Eval(env Env) (interface{}, error) {
-	obj, err := Eval(env, dotq.obj)
-	if err != nil {
-		return nil, err
-	}
-	expr, _ := dotq.expr.Eval(env)
-	fun := L(expr, obj)
-	return Eval(env, fun)
 }
 
 type Dot struct {
@@ -92,4 +78,23 @@ func DotParser(st p.ParseState) (interface{}, error) {
 		return nil, err
 	}
 	return AA(name.(string)), nil
+}
+
+type DotExpr struct {
+	Name string
+}
+
+func (de DotExpr) Task(env Env, args ...interface{}) (Lisp, error) {
+	if len(args) != 1 {
+		return nil, ParsexSignErrorf("Dot expression Args Error: except 1 arg but %v", args)
+	}
+	return Dot{args[0], AA(de.Name)}, nil
+}
+
+func DotExprParser(st p.ParseState) (interface{}, error) {
+	name, err := p.Bind_(p.Rune('.'), atomNameParser)(st)
+	if err != nil {
+		return nil, err
+	}
+	return DotExpr{name.(string)}, nil
 }

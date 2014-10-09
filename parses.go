@@ -182,6 +182,7 @@ func ValueParser(st p.ParseState) (interface{}, error) {
 		p.Try(NilParser),
 		p.Try(p.Bind(AtomParser, SuffixParser)),
 		p.Try(p.Bind(ListParser, SuffixParser)),
+		p.Try(DotExprParser),
 		QuoteParser,
 	)(st)
 	return value, err
@@ -198,6 +199,7 @@ func ValueParserExt(env Env) p.Parser {
 			p.Try(NilParser),
 			p.Try(p.Bind(AtomParserExt(env), SuffixParser)),
 			p.Try(p.Bind(ListParserExt(env), SuffixParser)),
+			p.Try(DotExprParser),
 			QuoteParserExt(env),
 		)(st)
 		return value, err

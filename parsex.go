@@ -196,6 +196,22 @@ var Parsex Toolkit = Toolkit{
 			}
 			return ParsexBox(px.Either(params[0].(Parsexer).Parser, params[1].(Parsexer).Parser)), nil
 		},
+		"choice": func(env Env, args ...interface{}) (Lisp, error) {
+			ptype := reflect.TypeOf((px.Parser)(nil))
+			params, err := GetArgs(env, px.ManyTil(TypeAs(ptype), px.Eof), args)
+			if err != nil {
+				return nil, err
+			}
+			parsers := make([]px.Parser, len(params))
+			for idx, prs := range params {
+				if parser, ok := prs.(Parsexer); ok {
+					parsers[idx] = parser.Parser
+				}
+				return nil, ParsexSignErrorf("Choice Args Error:except parsec parsers but %v is %v",
+					prs, reflect.TypeOf(prs))
+			}
+			return ParsexBox(px.Choice(parsers...)), nil
+		},
 		"return": func(env Env, args ...interface{}) (Lisp, error) {
 			if len(args) != 1 {
 				return nil, ParsexSignErrorf("Parsex Parser Return Error: only accept one parsex parser as arg but %v", args)
