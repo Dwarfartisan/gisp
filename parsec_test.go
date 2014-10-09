@@ -64,3 +64,35 @@ func TestParsecRune(t *testing.T) {
 		t.Fatalf("except got \"%v\" from gisp equal \"%v\" from parsec", gre, pre)
 	}
 }
+
+func TestParsecRune2(t *testing.T) {
+	g := NewGispWith(
+		map[string]Toolbox{
+			"axiom": Axiom, "props": Propositions, "time": Time},
+		map[string]Toolbox{"time": Time, "p": Parsec})
+	//data := "Here is a Rune : 'a' and a is't a rune. It is a word in sentence."
+	data := "'a' and a is't a rune. It is a word in sentence."
+	state := p.MemoryParseState(data)
+	pre, err := p.Between(p.Rune('\''), p.Rune('\''), p.AnyRune)(state)
+	if err != nil {
+		t.Fatalf("except found rune expr from \"%v\" but error:%v", data, err)
+	}
+	src := `
+	(let ((st (p.state "` + data + `")))
+		((p.rune '\'') st)
+		(var data (p.anyone st))
+		((p.rune '\'') st)
+		data)
+	`
+
+	//fmt.Println(src)
+	gre, err := g.Parse(src)
+	if err != nil {
+		t.Fatalf("except \"%v\" pass gisp '<rune>' but error:%v", src, err)
+	}
+	t.Logf("from gisp: %v", gre)
+	t.Logf("from parsec: %v", pre)
+	if !reflect.DeepEqual(pre, gre) {
+		t.Fatalf("except got \"%v\" from gisp equal \"%v\" from parsec", gre, pre)
+	}
+}
