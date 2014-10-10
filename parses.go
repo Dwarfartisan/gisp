@@ -197,9 +197,10 @@ func ValueParserExt(env Env) p.Parser {
 			p.Try(StringParser),
 			p.Try(BoolParser),
 			p.Try(NilParser),
-			p.Try(p.Bind(AtomParserExt(env), SuffixParser)),
-			p.Try(p.Bind(ListParserExt(env), SuffixParser)),
+			p.Try(p.Bind(AtomParserExt(env), SuffixParserExt(env))),
+			p.Try(p.Bind(ListParserExt(env), SuffixParserExt(env))),
 			p.Try(DotExprParser),
+			p.Try(BracketExprParserExt(env)),
 			QuoteParserExt(env),
 		)(st)
 		return value, err

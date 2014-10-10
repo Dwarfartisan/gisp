@@ -34,6 +34,18 @@ func BracketSuffix(x interface{}) p.Parser {
 	}
 }
 
+func BracketSuffixExt(env Env) func(interface{}) p.Parser {
+	return func(x interface{}) p.Parser {
+		return func(st p.ParseState) (interface{}, error) {
+			b, err := p.Try(BracketParserExt(env))(st)
+			if err != nil {
+				return nil, err
+			}
+			return bracketSuffixExt(env)(Bracket{x, b.([]interface{})})(st)
+		}
+	}
+}
+
 func bracketSuffix(x interface{}) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		b, err := BracketParser(st)
@@ -44,6 +56,17 @@ func bracketSuffix(x interface{}) p.Parser {
 	}
 }
 
+func bracketSuffixExt(env Env) func(interface{}) p.Parser {
+	return func(x interface{}) p.Parser {
+		return func(st p.ParseState) (interface{}, error) {
+			b, err := BracketParserExt(env)(st)
+			if err != nil {
+				return x, nil
+			}
+			return Bracket{x, b.([]interface{})}, nil
+		}
+	}
+}
 func DotSuffixParser(x interface{}) p.Parser {
 	return p.Either(p.Try(DotSuffix(x)), p.Return(x))
 }
@@ -60,5 +83,18 @@ func SuffixParser(prefix interface{}) p.Parser {
 			return prefix, nil
 		}
 		return SuffixParser(s)(st)
+	}
+}
+
+func SuffixParserExt(env Env) func(interface{}) p.Parser {
+	return func(prefix interface{}) p.Parser {
+		suffix := p.Either(p.Try(DotSuffix(prefix)), BracketSuffixExt(env)(prefix))
+		return func(st p.ParseState) (interface{}, error) {
+			s, err := suffix(st)
+			if err != nil {
+				return prefix, nil
+			}
+			return SuffixParser(s)(st)
+		}
 	}
 }

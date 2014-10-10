@@ -2,9 +2,10 @@ package gisp
 
 import (
 	"fmt"
+	"reflect"
+
 	p "github.com/Dwarfartisan/goparsec"
 	px "github.com/Dwarfartisan/goparsec/parsex"
-	"reflect"
 )
 
 type Bracket struct {
@@ -177,25 +178,34 @@ func IntVal(st px.ParsexState) (interface{}, error) {
 }
 
 func BracketParser(st p.ParseState) (interface{}, error) {
-	bracket := p.Between(p.Rune('['), p.Rune(']'),
+	return p.Between(p.Rune('['), p.Rune(']'),
 		p.SepBy1(ValueParser, p.Rune(':')),
-	)
-	t, err := bracket(st)
-	if err != nil {
-		return nil, err
-	}
-	tokens := t.([]interface{})
-	stx := px.NewStateInMemory(tokens)
-	format := px.Choice(
-		px.Binds_(px.StringVal, px.Eof),
-		px.Binds_(IntVal, px.Eof),
-		px.Binds_(IntVal, IntVal, px.Eof),
-		px.Binds_(IntVal, IntVal, IntVal, px.Eof),
-	)
-	_, err = format(stx)
-	if err != nil {
-		return nil, err
-	}
+	)(st)
+}
 
-	return tokens, nil
+func BracketParserExt(env Env) p.Parser {
+	return p.Between(p.Rune('['), p.Rune(']'),
+		p.SepBy1(ValueParserExt(env), p.Rune(':')),
+	)
+}
+
+type BracketExpr struct {
+	Expr []interface{}
+}
+
+func (be BracketExpr) Task(env Env, args ...interface{}) (Lisp, error) {
+	if len(args) != 1 {
+		return nil, ParsexSignErrorf("Bracket Expression Args Error: except a arg but %v", args)
+	}
+	return Bracket{args[0], be.Expr}, nil
+}
+
+func BracketExprParserExt(env Env) p.Parser {
+	return func(st p.ParseState) (interface{}, error) {
+		expr, err := BracketParserExt(env)(st)
+		if err != nil {
+			return nil, err
+		}
+		return BracketExpr{expr.([]interface{})}, nil
+	}
 }
