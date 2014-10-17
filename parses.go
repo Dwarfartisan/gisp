@@ -101,11 +101,6 @@ func bodyParserExt(env Env) p.Parser {
 func ListParser(st p.ParseState) (interface{}, error) {
 	left := p.Bind_(p.Rune('('), Skip)
 	right := p.Bind_(Skip, p.Rune(')'))
-	// one := p.Bind(AtomParser, func(atom interface{}) p.Parser {
-	// 	return p.Bind_(right, p.Return(List{atom}))
-	// })
-	// list, err := p.Either(p.Try(p.Bind_(p.Rune('('), one)),
-	// 	p.Between(left, right, bodyParser))(st)
 	list, err := p.Between(left, right, bodyParser)(st)
 	if err == nil {
 		switch l := list.(type) {
@@ -125,11 +120,6 @@ func ListParserExt(env Env) p.Parser {
 	left := p.Bind_(p.Rune('('), Skip)
 	right := p.Bind_(Skip, p.Rune(')'))
 	return func(st p.ParseState) (interface{}, error) {
-		// one := p.Bind(AtomParserExt(env), func(atom interface{}) p.Parser {
-		// 	return p.Bind_(right, p.Return(List{atom}))
-		// })
-		// list, err := p.Either(p.Try(p.Bind_(left, one)),
-		// 	p.Between(left, right, bodyParserExt(env)))(st)
 		list, err := p.Between(left, right, bodyParserExt(env))(st)
 		if err == nil {
 			switch l := list.(type) {
