@@ -2,8 +2,9 @@ package gisp
 
 import (
 	"fmt"
-	p "github.com/Dwarfartisan/goparsec"
 	"reflect"
+
+	p "github.com/Dwarfartisan/goparsec"
 )
 
 // Gisp 实现一个基本的 gisp 解释器
@@ -143,10 +144,10 @@ func (gisp *Gisp) Parse(code string) (interface{}, error) {
 		}
 		switch lisp := value.(type) {
 		case Lisp:
-			 v, e = lisp.Eval(gisp)
+			v, e = lisp.Eval(gisp)
 		default:
-			 v = lisp
-			 e = nil
+			v = lisp
+			e = nil
 		}
 	}
 	return v, e

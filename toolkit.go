@@ -46,26 +46,8 @@ func Eval(env Env, lisp interface{}) (interface{}, error) {
 	case Lisp:
 		value, err := o.Eval(env)
 		return value, err
-	case bool:
-		return Bool(o), nil
-	case float32:
-		return Float(o), nil
-	case float64:
-		return Float(o), nil
-	case int8:
-		return Int(o), nil
-	case int16:
-		return Int(o), nil
-	case int32:
-		return Int(o), nil
-	case int64:
-		return Int(o), nil
-	case int:
-		return Int(o), nil
-	case Float, Int, Bool, nil:
-		return o, nil
 	default:
-		return lisp, nil
+		return Value(o), nil
 	}
 }
 
@@ -79,6 +61,31 @@ func Evals(env Env, args ...interface{}) ([]interface{}, error) {
 		data[idx] = ret
 	}
 	return data, nil
+}
+
+// func Value 函数对 golang 基本类型做封装，目前仅止将整型转为 Int， 将浮点型转为 Float，
+// 将 rune 转为 Rune， 其它不做处理
+func Value(x interface{}) interface{} {
+	switch v := x.(type) {
+	case bool:
+		return Bool(v)
+	case float32:
+		return Float(v)
+	case float64:
+		return Float(v)
+	case int8:
+		return Int(v)
+	case int16:
+		return Int(v)
+	case int32:
+		return Int(v)
+	case int64:
+		return Int(v)
+	case int:
+		return Int(v)
+	default:
+		return v
+	}
 }
 
 func InReflects(values []reflect.Value) ([]interface{}, error) {

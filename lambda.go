@@ -2,6 +2,7 @@ package gisp
 
 import (
 	"fmt"
+
 	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
@@ -49,7 +50,7 @@ func (lambda *Lambda) prepareArgs(args List) {
 		return
 	}
 	lidx := l - 1
-	last := args[l-1].(Atom)
+	last := args[lidx].(Atom)
 	// variadic function args formal as (last[::Type] ... )
 	isVariadic := false
 	if last.Name == "..." && len(args) > 1 {
@@ -71,7 +72,7 @@ func (lambda *Lambda) prepareArgs(args List) {
 		formals[lidx] = last
 	}
 	ps[l] = px.Eof
-	lambda.Meta["formals parameters"] = formals
+	lambda.Meta["formal parameters"] = formals
 	lambda.Meta["parameter parsexs"] = ps
 }
 

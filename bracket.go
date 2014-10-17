@@ -46,7 +46,7 @@ func (bracket Bracket) Eval(env Env) (interface{}, error) {
 
 func (bracket Bracket) inter(value reflect.Value) interface{} {
 	if value.IsValid() {
-		return value.Interface()
+		return Value(value.Interface())
 	}
 	return nil
 }

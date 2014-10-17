@@ -2,10 +2,11 @@ package gisp
 
 import (
 	//"fmt"
-	p "github.com/Dwarfartisan/goparsec"
 	"reflect"
 	"testing"
 	tm "time"
+
+	p "github.com/Dwarfartisan/goparsec"
 )
 
 func TestDotTime(t *testing.T) {
@@ -22,7 +23,7 @@ func TestDotTime(t *testing.T) {
 	if err != nil {
 		t.Fatalf("except (now.Year) equal to now.Year() as %v but got error %v", year, err)
 	}
-	if !reflect.DeepEqual(year, y) {
+	if !reflect.DeepEqual(year, Int(y.(int))) {
 		t.Fatalf("except (now.Year) equal to now.Year() but got %v and %v", year, y)
 	}
 }
@@ -59,14 +60,12 @@ func TestDotMap(t *testing.T) {
 		"axioms": Axiom,
 		"props":  Propositions,
 	})
-	g.Defvar("box", VarSlot(ANYOPTION))
-	g.Setvar("box", box)
+	g.DefAs("box", box)
 	c, err := g.Parse(`(box.Get "c")`)
 	if err != nil {
 		t.Fatalf("excpet got b but error %v", err)
 	}
-	if !reflect.DeepEqual(Quote{c}, box["c"]) {
+	if !reflect.DeepEqual(c, box["c"]) {
 		t.Fatalf("except %v but got %v", box["c"], c)
 	}
-
 }

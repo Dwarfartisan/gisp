@@ -65,12 +65,6 @@ func (list List) Eval(env Env) (interface{}, error) {
 		return lisp.Eval(env)
 	case Task:
 		return item.Eval(env)
-	case Lambda:
-		lisp, err := item.Task(env, list[1:]...)
-		if err != nil {
-			return nil, err
-		}
-		return lisp.Eval(env)
 	case Functor:
 		task, err := item.Task(env, list[1:]...)
 		if err != nil {
@@ -126,14 +120,10 @@ func (list List) Eval(env Env) (interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			data, err := Evals(env, res...)
-			if err != nil {
-				return nil, err
-			}
-			if len(data) == 1 {
-				return data[0], nil
+			if len(res) == 1 {
+				return res[0], nil
 			} else {
-				return data, nil
+				return res, nil
 			}
 		}
 	case reflect.Value:

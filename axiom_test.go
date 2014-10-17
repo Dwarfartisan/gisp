@@ -126,7 +126,7 @@ func TestSetBracket(t *testing.T) {
 	if err != nil {
 		t.Fatalf("except got pi is 3.14 but error: %v", err)
 	}
-	if !reflect.DeepEqual(pi, 3.14) {
+	if !reflect.DeepEqual(pi, Float(3.14)) {
 		t.Fatalf("except got pi is 3.14 but %v", pi)
 	}
 	_, err = gisp.Parse("(set 'box[\"c\"] 3.14)")

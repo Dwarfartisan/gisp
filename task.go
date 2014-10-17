@@ -106,7 +106,7 @@ func (task Task) Defun(name string, functor Functor) error {
 
 func (task Task) Eval(env Env) (interface{}, error) {
 	formals := task.Meta["formal parameters"].(List)
-	actuals := task.Meta["actual parameters"].(List)
+	actuals := task.Meta["actual parameters"].([]interface{})
 	values := make([]Var, len(actuals))
 	for idx, atom := range formals {
 		formal := atom.(Atom)

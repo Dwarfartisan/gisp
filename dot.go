@@ -63,7 +63,7 @@ func (dot Dot) evalToolbox(env Env, obj Toolbox, name Atom) (interface{}, error)
 func (dot Dot) evalValue(env Env, val reflect.Value, name Atom) (interface{}, error) {
 	if val.Kind() == reflect.Struct {
 		if field := val.FieldByName(name.Name); field.IsValid() {
-			return field, nil
+			return Value(field), nil
 		}
 	}
 	if method := val.MethodByName(name.Name); method.IsValid() {

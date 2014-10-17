@@ -39,6 +39,9 @@ var Utils Toolkit = Toolkit{
 			}, nil
 		},
 		"printf": printf,
+		"ginq": LispExpr(func(env Env, args ...interface{}) (Lisp, error) {
+			return Q(NewGinq(args...)), nil
+		}),
 	},
 }
 
