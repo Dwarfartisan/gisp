@@ -41,7 +41,8 @@ func TestGinqWhereSelect(t *testing.T) {
 	ginq, err := g.Parse(`
 	(ginq
 		(where (lambda (r) (< 1 r[0])))
-		(select (fs [1] [2] [4])))
+		(select (fs [1] [2] [4]))
+	)
 	`)
 	if err != nil {
 		t.Fatalf("except got a ginq query but error %v ", err)

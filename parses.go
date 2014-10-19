@@ -8,7 +8,7 @@ import (
 	p "github.com/Dwarfartisan/goparsec"
 )
 
-var Space = p.Either(p.Try(p.Space), p.NewLine)
+var Space = p.Space
 var Skip = p.Skip(Space)
 
 // IntParser 解析整数
@@ -87,13 +87,15 @@ var StringParser = p.Bind(
 	p.ReturnString)
 
 func bodyParser(st p.ParseState) (interface{}, error) {
-	value, err := p.SepBy(ValueParser, p.Many1(p.Space))(st)
+	value, err := p.SepBy(ValueParser, p.Many1(Space))(st)
 	return value, err
 }
 
 func bodyParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
-		value, err := p.SepBy(ValueParserExt(env), p.Many1(p.Space))(st)
+		value, err := p.Many(p.Bind(ValueParserExt(env), func(x interface{}) p.Parser {
+			return p.Bind_(Skip, p.Return(x))
+		}))(st)
 		return value, err
 	}
 }
@@ -101,6 +103,7 @@ func bodyParserExt(env Env) p.Parser {
 func ListParser(st p.ParseState) (interface{}, error) {
 	left := p.Bind_(p.Rune('('), Skip)
 	right := p.Bind_(Skip, p.Rune(')'))
+	empty := p.Between(left, right, Skip)
 	list, err := p.Between(left, right, bodyParser)(st)
 	if err == nil {
 		switch l := list.(type) {
@@ -112,13 +115,19 @@ func ListParser(st p.ParseState) (interface{}, error) {
 			return nil, fmt.Errorf("List Parser Error: %v type is unexcepted: %v", list, reflect.TypeOf(list))
 		}
 	} else {
-		return nil, err
+		_, e := empty(st)
+		if e == nil {
+			return List{}, nil
+		} else {
+			return nil, err
+		}
 	}
 }
 
 func ListParserExt(env Env) p.Parser {
 	left := p.Bind_(p.Rune('('), Skip)
 	right := p.Bind_(Skip, p.Rune(')'))
+	empty := p.Between(left, right, Skip)
 	return func(st p.ParseState) (interface{}, error) {
 		list, err := p.Between(left, right, bodyParserExt(env))(st)
 		if err == nil {
@@ -131,7 +140,12 @@ func ListParserExt(env Env) p.Parser {
 				return nil, fmt.Errorf("List Parser(ext) Error: %v type is unexcepted: %v", list, reflect.TypeOf(list))
 			}
 		} else {
-			return nil, err
+			_, e := empty(st)
+			if e == nil {
+				return List{}, nil
+			} else {
+				return nil, err
+			}
 		}
 	}
 }
