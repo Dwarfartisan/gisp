@@ -78,17 +78,15 @@ func NewGinq(queries ...interface{}) *Ginq {
 					return Q(NewGinFields(params...)), nil
 				}),
 				"sum": TaskExpr(func(env Env, args ...interface{}) (Tasker, error) {
-					params, err := Evals(env, args...)
-					if err != nil {
-						return nil, err
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq sum args error: excpet one data list but: %v", args)
 					}
-					if len(params) != 1 {
-						return nil, ParsexSignErrorf("ginq sum args error: excpet one bool expression but: %v", params)
-					}
+
+					param := args[0]
 					var l List
 					var ok bool
-					if l, ok = params[0].(List); !ok {
-						return nil, ParsexSignErrorf("ginq sum args error: except a data List but: %v", params)
+					if l, ok = param.(List); !ok {
+						return nil, ParsexSignErrorf("ginq sum args error: except a data List but: %v", param)
 					}
 					return func(env Env) (interface{}, error) {
 						if len(l) == 0 {
@@ -111,17 +109,15 @@ func NewGinq(queries ...interface{}) *Ginq {
 					}, nil
 				}),
 				"max": TaskExpr(func(env Env, args ...interface{}) (Tasker, error) {
-					params, err := Evals(env, args...)
-					if err != nil {
-						return nil, err
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq max args error: excpet one data list but: %v", args)
 					}
-					if len(params) != 1 {
-						return nil, ParsexSignErrorf("ginq max args error: excpet one bool expression but: %v", params)
-					}
+
+					param := args[0]
 					var l List
 					var ok bool
-					if l, ok = params[0].(List); !ok {
-						return nil, ParsexSignErrorf("ginq sum max error: except a data List but: %v", params)
+					if l, ok = param.(List); !ok {
+						return nil, ParsexSignErrorf("ginq max args error: except a data List but: %v", param)
 					}
 					return func(env Env) (interface{}, error) {
 						if len(l) == 0 {
@@ -151,17 +147,15 @@ func NewGinq(queries ...interface{}) *Ginq {
 					}, nil
 				}),
 				"min": TaskExpr(func(env Env, args ...interface{}) (Tasker, error) {
-					params, err := Evals(env, args...)
-					if err != nil {
-						return nil, err
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq min args error: excpet one data list but: %v", args)
 					}
-					if len(params) != 1 {
-						return nil, ParsexSignErrorf("ginq sum args error: excpet one bool expression but: %v", params)
-					}
+
+					param := args[0]
 					var l List
 					var ok bool
-					if l, ok = params[0].(List); !ok {
-						return nil, ParsexSignErrorf("ginq sum args error: except a data List but: %v", params)
+					if l, ok = param.(List); !ok {
+						return nil, ParsexSignErrorf("ginq min args error: except a data List but: %v", param)
 					}
 					return func(env Env) (interface{}, error) {
 						if len(l) == 0 {
@@ -191,17 +185,15 @@ func NewGinq(queries ...interface{}) *Ginq {
 					}, nil
 				}),
 				"avg": TaskExpr(func(env Env, args ...interface{}) (Tasker, error) {
-					params, err := Evals(env, args...)
-					if err != nil {
-						return nil, err
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq avg args error: excpet one data list but: %v", args)
 					}
-					if len(params) != 1 {
-						return nil, ParsexSignErrorf("ginq avg args error: excpet one bool expression but: %v", params)
-					}
+
+					param := args[0]
 					var l List
 					var ok bool
-					if l, ok = params[0].(List); !ok {
-						return nil, ParsexSignErrorf("ginq avg args error: except a data List but: %v", params)
+					if l, ok = param.(List); !ok {
+						return nil, ParsexSignErrorf("ginq avg args error: except a data List but: %v", param)
 					}
 					return func(env Env) (interface{}, error) {
 						if len(l) == 0 {
@@ -228,6 +220,46 @@ func NewGinq(queries ...interface{}) *Ginq {
 						}
 						return rev, nil
 					}, nil
+				}),
+				"sums": LispExpr(func(env Env, args ...interface{}) (Lisp, error) {
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq sum select args error: excpet one expression but: %v", args)
+					}
+					param, err := Eval(env, args[0])
+					if err != nil {
+						return nil, err
+					}
+					return Q(NewGinSumSelect(param)), nil
+				}),
+				"avgs": LispExpr(func(env Env, args ...interface{}) (Lisp, error) {
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq avg select args error: excpet one expression but: %v", args)
+					}
+					param, err := Eval(env, args[0])
+					if err != nil {
+						return nil, err
+					}
+					return Q(NewGinAvgSelect(param)), nil
+				}),
+				"mins": LispExpr(func(env Env, args ...interface{}) (Lisp, error) {
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq min select args error: excpet one expression but: %v", args)
+					}
+					param, err := Eval(env, args[0])
+					if err != nil {
+						return nil, err
+					}
+					return Q(NewGinMinSelect(param)), nil
+				}),
+				"maxs": LispExpr(func(env Env, args ...interface{}) (Lisp, error) {
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq max select args error: excpet one expression but: %v", args)
+					}
+					param, err := Eval(env, args[0])
+					if err != nil {
+						return nil, err
+					}
+					return Q(NewGinMaxSelect(param)), nil
 				}),
 			},
 		},
@@ -362,18 +394,19 @@ func (group GinGroup) Task(env Env, args ...interface{}) (Lisp, error) {
 	}
 	pool := []List{}
 	for _, data := range l {
-		call := L(group.by, data)
+		call := L(group.by, Q(data))
 		grp, err := Eval(env, call)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("excpet group list:\n\t%v\nby %v but got error: \n\t%v",
+				data, group.by, err)
 		}
 		flag := false
-		// group is []List
 		for _, gr := range pool {
 			if reflect.DeepEqual(gr[0], grp) {
 				flag = true
+				//group pool row
 				grpr := gr[1].(List)
-				gr[1] = append(grpr, grp)
+				gr[1] = append(grpr, data)
 				break
 			}
 		}
@@ -384,7 +417,7 @@ func (group GinGroup) Task(env Env, args ...interface{}) (Lisp, error) {
 	rel := make(List, len(pool))
 	for idx, g := range pool {
 		row := L(g[0])
-		call := L(group.group, g[1])
+		call := L(group.group, Q(g[1]))
 		data, err := Eval(env, call)
 		if err != nil {
 			return nil, err
@@ -412,16 +445,7 @@ func (sel GinSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	if l, ok = args[0].(List); !ok {
 		return nil, ParsexSignErrorf("ginq select args error: except select from a list but %v", args[0])
 	}
-	rel := make(List, len(l))
-	for idx, r := range l {
-		call := L(sel.fun, r)
-		data, err := Eval(env, call)
-		if err != nil {
-			return nil, err
-		}
-		rel[idx] = data
-	}
-	return Q(rel), nil
+	return Selector{sel.fun, l}, nil
 }
 
 type GinWhere struct {
@@ -474,7 +498,7 @@ func (fs GinFields) Task(env Env, args ...interface{}) (Lisp, error) {
 	}
 	row := make(List, len(fs.funs))
 	for i, fun := range fs.funs {
-		call := L(fun, Q(args[0]))
+		call := L(fun, args[0])
 		data, err := Eval(env, call)
 		if err != nil {
 			return nil, err
@@ -482,4 +506,254 @@ func (fs GinFields) Task(env Env, args ...interface{}) (Lisp, error) {
 		row[i] = data
 	}
 	return Q(row), nil
+}
+
+type Selector struct {
+	fun  interface{}
+	data List
+}
+
+func (sp Selector) Eval(env Env) (interface{}, error) {
+	pool := make(List, len(sp.data))
+	for idx, row := range sp.data {
+		call := L(sp.fun, Q(row))
+		rev, err := Eval(env, call)
+		if err != nil {
+			return nil, err
+		}
+		pool[idx] = rev
+	}
+	return pool, nil
+}
+
+type GinSumSelect struct {
+	fun interface{}
+}
+
+func NewGinSumSelect(fun interface{}) GinSumSelect {
+	return GinSumSelect{fun}
+}
+
+func (sel GinSumSelect) Task(env Env, args ...interface{}) (Lisp, error) {
+	if len(args) != 1 {
+		return nil, ParsexSignErrorf("ginq sum select data error: except select from a list but %v", args)
+	}
+	param, err := Eval(env, args[0])
+	if err != nil {
+		return nil, err
+	}
+	var l List
+	var ok bool
+	if l, ok = param.(List); !ok {
+		return nil, ParsexSignErrorf("ginq sum select data error: except select from a list but %v", args[0])
+	}
+	return GinSumSelector{Selector{sel.fun, l}}, nil
+}
+
+type GinSumSelector struct {
+	Selector
+}
+
+func (ss GinSumSelector) Eval(env Env) (interface{}, error) {
+	p, err := ss.Selector.Eval(env)
+	if err != nil {
+		return nil, err
+	}
+	pool := p.(List)
+	if len(pool) == 0 {
+		return nil, nil
+	}
+	if len(pool) == 1 {
+		return pool[0], nil
+	}
+	add, _ := env.Lookup("+")
+	root := pool[0]
+	for _, item := range pool[1:] {
+		call := L(add, root, item)
+		data, err := Eval(env, call)
+		if err != nil {
+			return nil, err
+		}
+		root = data
+	}
+	return root, nil
+}
+
+type GinMaxSelect struct {
+	fun interface{}
+}
+
+func NewGinMaxSelect(fun interface{}) GinSumSelect {
+	return GinSumSelect{fun}
+}
+
+func (sel GinMaxSelect) Task(env Env, args ...interface{}) (Lisp, error) {
+	if len(args) != 1 {
+		return nil, ParsexSignErrorf("ginq max select data error: except select from a list but %v", args)
+	}
+	param, err := Eval(env, args[0])
+	if err != nil {
+		return nil, err
+	}
+	var l List
+	var ok bool
+	if l, ok = param.(List); !ok {
+		return nil, ParsexSignErrorf("ginq max select data error: except select from a list but %v", args[0])
+	}
+	return GinMaxSelector{Selector{sel.fun, l}}, nil
+}
+
+type GinMaxSelector struct {
+	Selector
+}
+
+func (ms GinMaxSelector) Eval(env Env) (interface{}, error) {
+	p, err := ms.Selector.Eval(env)
+	if err != nil {
+		return nil, err
+	}
+	pool := p.(List)
+	if len(pool) == 0 {
+		return nil, nil
+	}
+	if len(pool) == 1 {
+		return pool[0], nil
+	}
+	lt, _ := env.Lookup("<")
+	root := pool[0]
+	for _, item := range pool[1:] {
+		call := L(lt, root, item)
+		data, err := Eval(env, call)
+		if err != nil {
+			return nil, err
+		}
+		if b, ok := data.(bool); ok {
+			if b {
+				root = item
+			}
+		} else {
+			return nil, fmt.Errorf("ginq max error: except compare %v and %v got a bool but: %v",
+				root, item, data)
+		}
+	}
+	return root, nil
+}
+
+type GinMinSelect struct {
+	fun interface{}
+}
+
+func NewGinMinSelect(fun interface{}) GinSumSelect {
+	return GinSumSelect{fun}
+}
+
+func (sel GinMinSelect) Task(env Env, args ...interface{}) (Lisp, error) {
+	if len(args) != 1 {
+		return nil, ParsexSignErrorf("ginq min select data error: except select from a list but %v", args)
+	}
+	param, err := Eval(env, args[0])
+	if err != nil {
+		return nil, err
+	}
+	var l List
+	var ok bool
+	if l, ok = param.(List); !ok {
+		return nil, ParsexSignErrorf("ginq min select data error: except select from a list but %v", args[0])
+	}
+	return GinMinSelector{Selector{sel.fun, l}}, nil
+}
+
+type GinMinSelector struct {
+	Selector
+}
+
+func (ms GinMinSelector) Eval(env Env) (interface{}, error) {
+	p, err := ms.Selector.Eval(env)
+	if err != nil {
+		return nil, err
+	}
+	pool := p.(List)
+	if len(pool) == 0 {
+		return nil, nil
+	}
+	if len(pool) == 1 {
+		return pool[0], nil
+	}
+	lt, _ := env.Lookup("<")
+	root := pool[0]
+	for _, item := range pool[1:] {
+		call := L(lt, item, root)
+		data, err := Eval(env, call)
+		if err != nil {
+			return nil, err
+		}
+		if b, ok := data.(bool); ok {
+			if b {
+				root = item
+			}
+		} else {
+			return nil, fmt.Errorf("ginq max error: except compare %v and %v got a bool but: %v",
+				root, item, data)
+		}
+	}
+	return root, nil
+}
+
+type GinAvgSelect struct {
+	fun interface{}
+}
+
+func NewGinAvgSelect(fun interface{}) GinAvgSelect {
+	return GinAvgSelect{fun}
+}
+
+func (sel GinAvgSelect) Task(env Env, args ...interface{}) (Lisp, error) {
+	if len(args) != 1 {
+		return nil, ParsexSignErrorf("ginq avg select data error: except select from a list but %v", args)
+	}
+	param, err := Eval(env, args[0])
+	if err != nil {
+		return nil, err
+	}
+	var l List
+	var ok bool
+	if l, ok = param.(List); !ok {
+		return nil, ParsexSignErrorf("ginq avg select data error: except select from a list but %v", args[0])
+	}
+	return GinAvgSelector{Selector{sel.fun, l}}, nil
+}
+
+type GinAvgSelector struct {
+	Selector
+}
+
+func (as GinAvgSelector) Eval(env Env) (interface{}, error) {
+	p, err := as.Selector.Eval(env)
+	if err != nil {
+		return nil, err
+	}
+	pool := p.(List)
+	if len(pool) == 0 {
+		return nil, nil
+	}
+	if len(pool) == 1 {
+		return pool[0], nil
+	}
+	add, _ := env.Lookup("+")
+	root := pool[0]
+	for _, item := range pool[1:] {
+		call := L(add, root, item)
+		data, err := Eval(env, call)
+		if err != nil {
+			return nil, err
+		}
+		root = data
+	}
+	div, _ := env.Lookup("/")
+	call := L(div, root, len(pool))
+	rev, err := Eval(env, call)
+	if err != nil {
+		return nil, err
+	}
+	return rev, nil
 }

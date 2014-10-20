@@ -94,11 +94,11 @@ func ParsexReverseExpr(pxExpr px.Parser) LispExpr {
 			datax[last-idx] = item
 		}
 		st := px.NewStateInMemory(data)
-		lisp, err := pxExpr(st)
+		x, err := pxExpr(st)
 		if err != nil {
 			return nil, err
 		}
-		return lisp.(Lisp), nil
+		return Q(x), nil
 	}
 }
 
