@@ -77,6 +77,7 @@ func NewGinq(queries ...interface{}) *Ginq {
 					}
 					return Q(NewGinFields(params...)), nil
 				}),
+				"count": GinCount{},
 				"sum": TaskExpr(func(env Env, args ...interface{}) (Tasker, error) {
 					if len(args) != 1 {
 						return nil, ParsexSignErrorf("ginq sum args error: excpet one data list but: %v", args)
@@ -583,8 +584,8 @@ type GinMaxSelect struct {
 	fun interface{}
 }
 
-func NewGinMaxSelect(fun interface{}) GinSumSelect {
-	return GinSumSelect{fun}
+func NewGinMaxSelect(fun interface{}) GinMaxSelect {
+	return GinMaxSelect{fun}
 }
 
 func (sel GinMaxSelect) Task(env Env, args ...interface{}) (Lisp, error) {
@@ -643,8 +644,8 @@ type GinMinSelect struct {
 	fun interface{}
 }
 
-func NewGinMinSelect(fun interface{}) GinSumSelect {
-	return GinSumSelect{fun}
+func NewGinMinSelect(fun interface{}) GinMinSelect {
+	return GinMinSelect{fun}
 }
 
 func (sel GinMinSelect) Task(env Env, args ...interface{}) (Lisp, error) {
@@ -756,4 +757,23 @@ func (as GinAvgSelector) Eval(env Env) (interface{}, error) {
 		return nil, err
 	}
 	return rev, nil
+}
+
+type GinCount struct {
+}
+
+func (c GinCount) Task(env Env, args ...interface{}) (Lisp, error) {
+	if len(args) != 1 {
+		return nil, ParsexSignErrorf("ginq count data error: except a list but %v", args)
+	}
+	param, err := Eval(env, args[0])
+	if err != nil {
+		return nil, err
+	}
+	var l List
+	var ok bool
+	if l, ok = param.(List); !ok {
+		return nil, ParsexSignErrorf("ginq count data error: except count a list but %v", args[0])
+	}
+	return Q(len(l)), nil
 }
