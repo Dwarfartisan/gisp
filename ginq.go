@@ -3,6 +3,7 @@ package gisp
 import (
 	"fmt"
 	"reflect"
+	"sort"
 )
 
 /*
@@ -261,6 +262,39 @@ func NewGinq(queries ...interface{}) *Ginq {
 						return nil, err
 					}
 					return Q(NewGinMaxSelect(param)), nil
+				}),
+				"sort": TaskExpr(func(env Env, args ...interface{}) (Tasker, error) {
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq sort args error: excpet one data list but: %v", args)
+					}
+
+					param := args[0]
+					var l List
+					var ok bool
+					if l, ok = param.(List); !ok {
+						return nil, ParsexSignErrorf("ginq sort args error: except a data List but: %v", param)
+					}
+					return func(env Env) (interface{}, error) {
+						buf := make(List, len(l))
+						copy(buf, l)
+						s := GinSort{buf, env, nil}
+						sort.Sort(&s)
+						if s.err == nil {
+							return buf, nil
+						} else {
+							return nil, s.err
+						}
+					}, nil
+				}),
+				"sortby": LispExpr(func(env Env, args ...interface{}) (Lisp, error) {
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq sort by args error: excpet one expression but: %v", args)
+					}
+					param, err := Eval(env, args[0])
+					if err != nil {
+						return nil, err
+					}
+					return Q(NewGinSortBy(param)), nil
 				}),
 			},
 		},
@@ -776,4 +810,101 @@ func (c GinCount) Task(env Env, args ...interface{}) (Lisp, error) {
 		return nil, ParsexSignErrorf("ginq count data error: except count a list but %v", args[0])
 	}
 	return Q(len(l)), nil
+}
+
+type GinSort struct {
+	List
+	env Env
+	err error
+}
+
+func (ls *GinSort) Less(x, y int) bool {
+	less, _ := ls.env.Lookup("<")
+	call := L(less, Q(ls.List[x]), Q(ls.List[y]))
+	b, err := Eval(ls.env, call)
+	if err != nil {
+		ls.err = err
+		return false
+	}
+	if is, ok := b.(bool); ok {
+		return is
+	} else {
+		//ls.err = fmt.Errorf("except (less x y) as (< %v %v) return true or false but error: %v", err)
+		ls.err = err
+		return false
+	}
+}
+func (ls *GinSort) Len() int {
+	return len(ls.List)
+}
+func (ls *GinSort) Swap(i, j int) {
+	tmp := ls.List[i]
+	ls.List[i] = ls.List[j]
+	ls.List[j] = tmp
+}
+
+type GinSortBy struct {
+	fun interface{}
+}
+
+func NewGinSortBy(fun interface{}) GinSortBy {
+	return GinSortBy{fun}
+}
+
+func (gsb GinSortBy) Task(env Env, args ...interface{}) (Lisp, error) {
+	if len(args) != 1 {
+		return nil, ParsexSignErrorf("ginq sort data error: except sort one list but %v", args)
+	}
+	// param, err := Eval(env, args[0])
+	// if err != nil {
+	// 	return nil, err
+	// }
+	param := args[0]
+	var l List
+	var ok bool
+	if l, ok = param.(List); !ok {
+		return nil, ParsexSignErrorf("ginq sort data error: except sort a list but %v", args[0])
+	}
+	buf := make(List, len(l))
+	copy(buf, l)
+	return &GinSortListBy{buf, env, gsb.fun, nil}, nil
+}
+
+type GinSortListBy struct {
+	List
+	env Env
+	fun interface{}
+	err error
+}
+
+func (gsl *GinSortListBy) Less(x, y int) bool {
+	call := L(gsl.fun, Q(gsl.List[x]), Q(gsl.List[y]))
+	b, err := Eval(gsl.env, call)
+	if err != nil {
+		gsl.err = err
+		return false
+	}
+	if is, ok := b.(bool); ok {
+		return is
+	} else {
+		//ls.err = fmt.Errorf("except (less x y) as (< %v %v) return true or false but error: %v", err)
+		gsl.err = err
+		return false
+	}
+}
+func (gsl *GinSortListBy) Len() int {
+	return len(gsl.List)
+}
+func (gsl *GinSortListBy) Swap(i, j int) {
+	tmp := gsl.List[i]
+	gsl.List[i] = gsl.List[j]
+	gsl.List[j] = tmp
+}
+func (gsl *GinSortListBy) Eval(env Env) (interface{}, error) {
+	sort.Sort(gsl)
+	if gsl.err == nil {
+		return gsl.List, nil
+	} else {
+		return nil, gsl.err
+	}
 }
