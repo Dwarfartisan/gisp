@@ -345,3 +345,34 @@ func TestGinqSortBy(t *testing.T) {
 	}
 	t.Logf("ginq sort got %v", re)
 }
+
+func TestGinqReverse(t *testing.T) {
+	data := QL(
+		L(0, 1, 2, 3, 4, 5),
+		L(1, 2, 3, 4, 5, 6),
+		L(0, 1, 2, 3, 4, 2),
+		L(1, 2, 3, 4, 5, 6),
+		L(2, 3, 4, 5, 6, 7),
+		L(1, 2, 3, 4, 5, 3),
+		L(2, 3, 4, 5, 6, 4),
+		L(3, 4, 5, 6, 7, 8))
+	g := NewGispWith(
+		map[string]Toolbox{"axiom": Axiom, "props": Propositions, "utils": Utils},
+		map[string]Toolbox{"time": Time})
+	g.DefAs("data", data)
+	ginq, err := g.Parse(`
+	(ginq
+		(select (fs [3] [1] [5]))
+		(sortby (lambda (x y) (< x[2] y[2])))
+		reverse
+	)
+	`)
+	if err != nil {
+		t.Fatalf("except got a ginq sortby but error %v ", err)
+	}
+	re, err := g.Eval(L(ginq, data))
+	if err != nil {
+		t.Fatalf("except got ginq reverse from data but error: %v", err)
+	}
+	t.Logf("ginq sort by then reverse got %v", re)
+}

@@ -223,6 +223,27 @@ func NewGinq(queries ...interface{}) *Ginq {
 						return rev, nil
 					}, nil
 				}),
+				"reverse": TaskExpr(func(env Env, args ...interface{}) (Tasker, error) {
+					if len(args) != 1 {
+						return nil, ParsexSignErrorf("ginq reverse args error: excpet one data list but: %v", args)
+					}
+
+					param := args[0]
+					var l List
+					var ok bool
+					if l, ok = param.(List); !ok {
+						return nil, ParsexSignErrorf("ginq reverse args error: except a data List but: %v", param)
+					}
+					return func(env Env) (interface{}, error) {
+						ln := len(l)
+						last := ln - 1
+						rel := make(List, ln)
+						for idx, data := range l {
+							rel[last-idx] = data
+						}
+						return rel, nil
+					}, nil
+				}),
 				"sums": LispExpr(func(env Env, args ...interface{}) (Lisp, error) {
 					if len(args) != 1 {
 						return nil, ParsexSignErrorf("ginq sum select args error: excpet one expression but: %v", args)
