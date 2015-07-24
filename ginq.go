@@ -28,7 +28,7 @@ Ginq methods:
  - join
 */
 
-// 这个 ginq 构造器效率是比较低的，每一个查询子句都会重新构造一个数据集，提升查询效率有赖
+// Ginq 构造器效率是比较低的，每一个查询子句都会重新构造一个数据集，提升查询效率有赖
 // 调用者调整查询结构。
 // 未来应该将其内部逻辑改为构造一个查询语法树，尽可能的减少中间数据集的构造。
 type Ginq struct {
@@ -36,6 +36,7 @@ type Ginq struct {
 	queries []interface{}
 }
 
+// NewGinq 构造一个基本的 Ginq 包
 func NewGinq(queries ...interface{}) *Ginq {
 	ginq := &Ginq{
 		Meta: map[string]interface{}{
@@ -302,9 +303,8 @@ func NewGinq(queries ...interface{}) *Ginq {
 						sort.Sort(&s)
 						if s.err == nil {
 							return buf, nil
-						} else {
-							return nil, s.err
 						}
+						return nil, s.err
 					}, nil
 				}),
 				"sortby": LispExpr(func(env Env, args ...interface{}) (Lisp, error) {
@@ -324,6 +324,7 @@ func NewGinq(queries ...interface{}) *Ginq {
 	return ginq
 }
 
+// Task 定了 ginq 包的求值行为，它给出 ginq 包中指定名称的对象
 func (ginq Ginq) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq avg args error: excpet one expression but: %v", args)
@@ -344,12 +345,14 @@ func (ginq Ginq) Task(env Env, args ...interface{}) (Lisp, error) {
 	return GinQ{meta, ginq.queries, l}, nil
 }
 
+// GinQ 定义了 Ginq 查询
 type GinQ struct {
 	Meta    map[string]interface{}
 	queries []interface{}
 	data    List
 }
 
+// Eval 实现 GinQ 的求值
 func (ginq GinQ) Eval(env Env) (interface{}, error) {
 	ginq.Meta["global"] = env
 	var rel interface{} = ginq.data
@@ -364,7 +367,7 @@ func (ginq GinQ) Eval(env Env) (interface{}, error) {
 	return rel, nil
 }
 
-// Defvar 实现 Env.Defvar
+// Defvar 实现 Env.Defvar 行为
 func (ginq GinQ) Defvar(name string, slot Var) error {
 	if _, ok := ginq.Local(name); ok {
 		return fmt.Errorf("local name %s is exists", name)
@@ -430,15 +433,18 @@ func (ginq GinQ) Global(name string) (interface{}, bool) {
 	return global.Lookup(name)
 }
 
+// GinGroup 实现了分组操作
 type GinGroup struct {
 	group interface{}
 	by    interface{}
 }
 
+// NewGinGroup 构造一个新的 group 查询
 func NewGinGroup(by interface{}, group interface{}) GinGroup {
 	return GinGroup{group, by}
 }
 
+// Task 实现 GinGroup 的求值行为
 func (group GinGroup) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq group by exec error: except group from a list but %v", args)
@@ -484,14 +490,17 @@ func (group GinGroup) Task(env Env, args ...interface{}) (Lisp, error) {
 	return Q(rel), nil
 }
 
+// GinSelect 定义了 select 查询子句
 type GinSelect struct {
 	fun interface{}
 }
 
+// NewGinSelect 构造一个新的 Ginq Select
 func NewGinSelect(fun interface{}) GinSelect {
 	return GinSelect{fun}
 }
 
+// Task 实现 Ginq Select 求值
 func (sel GinSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq select args error: except select from a list but %v", args)
@@ -504,14 +513,17 @@ func (sel GinSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	return Selector{sel.fun, l}, nil
 }
 
+// GinWhere 定义 Ginq 的 where 子句
 type GinWhere struct {
 	expr interface{}
 }
 
+// NewGinWere 构造一个新的 GinWhere
 func NewGinWere(expr interface{}) GinWhere {
 	return GinWhere{expr}
 }
 
+// Task 实现了 GinWhere 的求值行为
 func (where GinWhere) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq where args error: except select from a list but %v", args)
@@ -540,14 +552,17 @@ func (where GinWhere) Task(env Env, args ...interface{}) (Lisp, error) {
 	return Q(rel), nil
 }
 
+// GinFields 定义 Ginq 的 fields 子句
 type GinFields struct {
 	funs List
 }
 
+// NewGinFields 实现一个新的 FinFields
 func NewGinFields(args ...interface{}) GinFields {
 	return GinFields{List(args)}
 }
 
+// Task 实现字段提取操作的求值行为
 func (fs GinFields) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq fields args error: except fields from a list but %v", args)
@@ -564,11 +579,13 @@ func (fs GinFields) Task(env Env, args ...interface{}) (Lisp, error) {
 	return Q(row), nil
 }
 
+// Selector 定义 Ginq 的 选择算子
 type Selector struct {
 	fun  interface{}
 	data List
 }
 
+// Eval 实现选择算子的求值行为
 func (sp Selector) Eval(env Env) (interface{}, error) {
 	pool := make(List, len(sp.data))
 	for idx, row := range sp.data {
@@ -582,14 +599,17 @@ func (sp Selector) Eval(env Env) (interface{}, error) {
 	return pool, nil
 }
 
+// GinSumSelect 定义了 gin sum select 行为
 type GinSumSelect struct {
 	fun interface{}
 }
 
+// NewGinSumSelect 构造一个新的  GinSumSelect
 func NewGinSumSelect(fun interface{}) GinSumSelect {
 	return GinSumSelect{fun}
 }
 
+// Task 实现 GinSumSelect 的求值行为
 func (sel GinSumSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq sum select data error: except select from a list but %v", args)
@@ -606,10 +626,12 @@ func (sel GinSumSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	return GinSumSelector{Selector{sel.fun, l}}, nil
 }
 
+// GinSumSelector 定义 ginq sum 的 selector 算子
 type GinSumSelector struct {
 	Selector
 }
 
+// Eval 实现 GinSumSelector 的求值行为
 func (ss GinSumSelector) Eval(env Env) (interface{}, error) {
 	p, err := ss.Selector.Eval(env)
 	if err != nil {
@@ -635,14 +657,17 @@ func (ss GinSumSelector) Eval(env Env) (interface{}, error) {
 	return root, nil
 }
 
+// GinMaxSelect 实现 ginq max select 计算
 type GinMaxSelect struct {
 	fun interface{}
 }
 
+// NewGinMaxSelect 构造一个新的 ginq max select
 func NewGinMaxSelect(fun interface{}) GinMaxSelect {
 	return GinMaxSelect{fun}
 }
 
+// Task 实现 GinMaxSelect 的求值行为
 func (sel GinMaxSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq max select data error: except select from a list but %v", args)
@@ -659,10 +684,12 @@ func (sel GinMaxSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	return GinMaxSelector{Selector{sel.fun, l}}, nil
 }
 
+// GinMaxSelector 实现 ginq 的 Max 选择
 type GinMaxSelector struct {
 	Selector
 }
 
+// Eval 实现 GinMaxSelector 的求值逻辑
 func (ms GinMaxSelector) Eval(env Env) (interface{}, error) {
 	p, err := ms.Selector.Eval(env)
 	if err != nil {
@@ -695,14 +722,17 @@ func (ms GinMaxSelector) Eval(env Env) (interface{}, error) {
 	return root, nil
 }
 
+// GinMinSelect 实现 ginq min 算法
 type GinMinSelect struct {
 	fun interface{}
 }
 
+// NewGinMinSelect 构造一个  ginq min
 func NewGinMinSelect(fun interface{}) GinMinSelect {
 	return GinMinSelect{fun}
 }
 
+// Task 实现 ginq min 的求值逻辑
 func (sel GinMinSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq min select data error: except select from a list but %v", args)
@@ -719,10 +749,12 @@ func (sel GinMinSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	return GinMinSelector{Selector{sel.fun, l}}, nil
 }
 
+// GinMinSelector 实现 ginq min 的 select 计算
 type GinMinSelector struct {
 	Selector
 }
 
+// Eval 实现了 GinMinSelector 的求值逻辑
 func (ms GinMinSelector) Eval(env Env) (interface{}, error) {
 	p, err := ms.Selector.Eval(env)
 	if err != nil {
@@ -755,14 +787,17 @@ func (ms GinMinSelector) Eval(env Env) (interface{}, error) {
 	return root, nil
 }
 
+// GinAvgSelect 实现了 ginq avg 计算
 type GinAvgSelect struct {
 	fun interface{}
 }
 
+// NewGinAvgSelect 构造一个新的 ginq avg select
 func NewGinAvgSelect(fun interface{}) GinAvgSelect {
 	return GinAvgSelect{fun}
 }
 
+// Task 实现 ginq avg select 的求值
 func (sel GinAvgSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq avg select data error: except select from a list but %v", args)
@@ -779,10 +814,12 @@ func (sel GinAvgSelect) Task(env Env, args ...interface{}) (Lisp, error) {
 	return GinAvgSelector{Selector{sel.fun, l}}, nil
 }
 
+// GinAvgSelector 实现 ginq avg 的 selector
 type GinAvgSelector struct {
 	Selector
 }
 
+// Eval 实现 GinAvgSelector 的求值逻辑
 func (as GinAvgSelector) Eval(env Env) (interface{}, error) {
 	p, err := as.Selector.Eval(env)
 	if err != nil {
@@ -814,9 +851,11 @@ func (as GinAvgSelector) Eval(env Env) (interface{}, error) {
 	return rev, nil
 }
 
+// GinCount 实现 ginq 的 count
 type GinCount struct {
 }
 
+// Task 实现 GinCount 的求值逻辑
 func (c GinCount) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq count data error: except a list but %v", args)
@@ -833,12 +872,14 @@ func (c GinCount) Task(env Env, args ...interface{}) (Lisp, error) {
 	return Q(len(l)), nil
 }
 
+// GinSort 实现排序算法
 type GinSort struct {
 	List
 	env Env
 	err error
 }
 
+// Less 实现 sort.Interface 的 Less 操作
 func (ls *GinSort) Less(x, y int) bool {
 	less, _ := ls.env.Lookup("<")
 	call := L(less, Q(ls.List[x]), Q(ls.List[y]))
@@ -849,29 +890,35 @@ func (ls *GinSort) Less(x, y int) bool {
 	}
 	if is, ok := b.(bool); ok {
 		return is
-	} else {
-		//ls.err = fmt.Errorf("except (less x y) as (< %v %v) return true or false but error: %v", err)
-		ls.err = err
-		return false
 	}
+	//ls.err = fmt.Errorf("except (less x y) as (< %v %v) return true or false but error: %v", err)
+	ls.err = err
+	return false
 }
+
+// Len 实现 sort.Interface 的 Len
 func (ls *GinSort) Len() int {
 	return len(ls.List)
 }
+
+// Swap 实现 sort.Interface 的  Swap
 func (ls *GinSort) Swap(i, j int) {
 	tmp := ls.List[i]
 	ls.List[i] = ls.List[j]
 	ls.List[j] = tmp
 }
 
+// GinSortBy 定义了一个由定制比较行为排序的操作
 type GinSortBy struct {
 	fun interface{}
 }
 
+// NewGinSortBy 构造一个新的 ginq sort by
 func NewGinSortBy(fun interface{}) GinSortBy {
 	return GinSortBy{fun}
 }
 
+// Task 实现 sort by 的求值
 func (gsb GinSortBy) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("ginq sort data error: except sort one list but %v", args)
@@ -891,6 +938,7 @@ func (gsb GinSortBy) Task(env Env, args ...interface{}) (Lisp, error) {
 	return &GinSortListBy{buf, env, gsb.fun, nil}, nil
 }
 
+// GinSortListBy 实现一个类似 sql order by 的排序操作
 type GinSortListBy struct {
 	List
 	env Env
@@ -898,6 +946,7 @@ type GinSortListBy struct {
 	err error
 }
 
+// Less 实现 sort.Interface 的 Less
 func (gsl *GinSortListBy) Less(x, y int) bool {
 	call := L(gsl.fun, Q(gsl.List[x]), Q(gsl.List[y]))
 	b, err := Eval(gsl.env, call)
@@ -907,25 +956,29 @@ func (gsl *GinSortListBy) Less(x, y int) bool {
 	}
 	if is, ok := b.(bool); ok {
 		return is
-	} else {
-		//ls.err = fmt.Errorf("except (less x y) as (< %v %v) return true or false but error: %v", err)
-		gsl.err = err
-		return false
 	}
+	//ls.err = fmt.Errorf("except (less x y) as (< %v %v) return true or false but error: %v", err)
+	gsl.err = err
+	return false
 }
+
+// Len 实现 sort.Interface 的 Len
 func (gsl *GinSortListBy) Len() int {
 	return len(gsl.List)
 }
+
+// Swap 实现 sort.Interface 的 Swap
 func (gsl *GinSortListBy) Swap(i, j int) {
 	tmp := gsl.List[i]
 	gsl.List[i] = gsl.List[j]
 	gsl.List[j] = tmp
 }
+
+// Eval 实现  GinSortListBy 的求值
 func (gsl *GinSortListBy) Eval(env Env) (interface{}, error) {
 	sort.Sort(gsl)
 	if gsl.err == nil {
 		return gsl.List, nil
-	} else {
-		return nil, gsl.err
 	}
+	return nil, gsl.err
 }

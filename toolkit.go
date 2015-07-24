@@ -26,9 +26,8 @@ func (tk Toolkit) Local(name string) (interface{}, bool) {
 			return slot.Get(), true
 		}
 		return value, true
-	} else {
-		return nil, false
 	}
+	return nil, false
 }
 
 // Global 实现 Env.Global 。如果 Meta 中没有注册 global ，视作顶层环境，返回notfound
@@ -40,6 +39,7 @@ func (tk Toolkit) Global(name string) (interface{}, bool) {
 	return nil, false
 }
 
+// Eval 函数在给定环境中执行 lisp 对象进行求值
 func Eval(env Env, lisp interface{}) (interface{}, error) {
 	// a lisp data or go value
 	switch o := lisp.(type) {
@@ -51,6 +51,7 @@ func Eval(env Env, lisp interface{}) (interface{}, error) {
 	}
 }
 
+// Evals 执行多个 lisp 对象
 func Evals(env Env, args ...interface{}) ([]interface{}, error) {
 	data := make([]interface{}, len(args))
 	for idx, arg := range args {
@@ -63,7 +64,7 @@ func Evals(env Env, args ...interface{}) ([]interface{}, error) {
 	return data, nil
 }
 
-// func Value 函数对 golang 基本类型做封装，目前仅止将整型转为 Int， 将浮点型转为 Float，
+// Value 函数对 golang 基本类型做封装，目前仅止将整型转为 Int， 将浮点型转为 Float，
 // 将 rune 转为 Rune， 其它不做处理
 func Value(x interface{}) interface{} {
 	switch v := x.(type) {
@@ -88,6 +89,7 @@ func Value(x interface{}) interface{} {
 	}
 }
 
+//InReflects 从反射对象中取值
 func InReflects(values []reflect.Value) ([]interface{}, error) {
 	res := make([]interface{}, len(values))
 	for idx, value := range values {

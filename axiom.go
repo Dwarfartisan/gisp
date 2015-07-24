@@ -99,16 +99,14 @@ var Axiom = Toolkit{
 		"car": TaskExpr(func(env Env, args ...interface{}) (Tasker, error) {
 			if lisp, ok := args[0].(List); ok {
 				return Q(lisp[0]).Eval, nil
-			} else {
-				return nil, ParsexSignErrorf("car args error: excpet a list but %v", args)
 			}
+			return nil, ParsexSignErrorf("car args error: excpet a list but %v", args)
 		}),
 		"cdr": TaskExpr(func(env Env, args ...interface{}) (Tasker, error) {
 			if lisp, ok := args[0].(List); ok {
 				return Q(lisp[1:]).Eval, nil
-			} else {
-				return nil, ParsexSignErrorf("car args error: excpet a list but %v", args)
 			}
+			return nil, ParsexSignErrorf("car args error: excpet a list but %v", args)
 		}),
 		// atom while true both lisp atom or go value
 		"atom": LispExpr(func(env Env, args ...interface{}) (Lisp, error) {

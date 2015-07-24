@@ -8,7 +8,8 @@ import (
 	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
-var Parsec Toolkit = Toolkit{
+// Parsec 定义了 parsec 包的结构
+var Parsec = Toolkit{
 	Meta: map[string]interface{}{
 		"name":     "parsex",
 		"category": "package",
@@ -283,11 +284,11 @@ var Parsec Toolkit = Toolkit{
 							return nil, err
 						}
 					}
-					switch parser_ := pr.(type) {
+					switch parser := pr.(type) {
 					case p.Parser:
-						return parser_
+						return parser
 					case Parsecer:
-						return parser_.Parser
+						return parser.Parser
 					default:
 						return func(st p.ParseState) (interface{}, error) {
 							return nil, ParsexSignErrorf("excpet got a parser but %v", pr)
@@ -367,10 +368,12 @@ var Parsec Toolkit = Toolkit{
 	},
 }
 
+// Parsecer 定了一个对 Parsec 解释器的封装
 type Parsecer struct {
 	Parser p.Parser
 }
 
+// Task 实现了其求值逻辑
 func (parsec Parsecer) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf(
@@ -391,19 +394,23 @@ func (parsec Parsecer) Task(env Env, args ...interface{}) (Lisp, error) {
 	return ParsecTask{parsec.Parser, st}, nil
 }
 
+// Eval 实现了 Parsecer 的求值解析
 func (parsec Parsecer) Eval(env Env) (interface{}, error) {
 	return parsec, nil
 }
 
+// ParsecBox 返回一个封装的 paer
 func ParsecBox(parser p.Parser) Lisp {
 	return Parsecer{parser}
 }
 
+// ParsecTask 是延迟执行 Parsec 逻辑的封装
 type ParsecTask struct {
 	Parser p.Parser
 	State  p.ParseState
 }
 
+// Eval 实现了求值
 func (pt ParsecTask) Eval(env Env) (interface{}, error) {
 	return pt.Parser(pt.State)
 }

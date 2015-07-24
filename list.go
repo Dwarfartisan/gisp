@@ -122,9 +122,8 @@ func (list List) Eval(env Env) (interface{}, error) {
 			}
 			if len(res) == 1 {
 				return res[0], nil
-			} else {
-				return res, nil
 			}
+			return res, nil
 		}
 	case reflect.Value:
 		args, err := Evals(env, list[1:]...)
@@ -151,36 +150,35 @@ func (list List) Eval(env Env) (interface{}, error) {
 		}
 		if len(data) == 1 {
 			return data[0], nil
-		} else {
-			return data, nil
 		}
+		return data, nil
 	}
 	return nil, fmt.Errorf("List %v Eval Error: %v(%v):%v is't callable",
 		list, list[0], lisp, reflect.TypeOf(lisp))
 }
 
-func (l List) indexn(index Int) interface{} {
-	idx, err := l.Anchor(index)
+func (list List) indexn(index Int) interface{} {
+	idx, err := list.Anchor(index)
 	if err == nil {
-		return l[idx.(int)]
+		return list[idx.(int)]
 	}
 	return nil
 }
 
-// IndexIs 的 parser 版本，可以用于 Eval 或 gisp code
-func (l List) Anchor(index Int) (interface{}, error) {
-	idx := l.IndexIs(index)
+// Anchor 是 IndexIs 的 parser 版本，可以用于 Eval 或 gisp code
+func (list List) Anchor(index Int) (interface{}, error) {
+	idx := list.IndexIs(index)
 	if idx == -1 {
 		return nil, fmt.Errorf("List Index Anchor Error: %v out range (0, %d)",
-			index, len(l))
+			index, len(list))
 	}
 	return idx, nil
 }
 
-// 将负索引正规化， 返回正负索引对应的正规化索引[0, length)。如果索引index不在[-length, length)的范围内，返回－1
-func (l List) IndexIs(index Int) int {
+// IndexIs 将负索引正规化， 返回正负索引对应的正规化索引[0, length)。如果索引index不在[-length, length)的范围内，返回－1
+func (list List) IndexIs(index Int) int {
 	idx := int(index)
-	ll := len(l)
+	ll := len(list)
 	if 0 <= idx || idx < ll {
 		return idx
 	}
@@ -190,14 +188,16 @@ func (l List) IndexIs(index Int) int {
 	return -1
 }
 
-func (l List) Index(index Int) (interface{}, error) {
-	idx, err := l.Anchor(index)
+// Index 实现基本的索引操作
+func (list List) Index(index Int) (interface{}, error) {
+	idx, err := list.Anchor(index)
 	if err != nil {
 		return nil, err
 	}
-	return l[idx.(int)], nil
+	return list[idx.(int)], nil
 }
 
+// Zip 合并两个 List
 func Zip(x, y List) List {
 	xlen := len(x)
 	ylen := len(y)
@@ -205,7 +205,7 @@ func Zip(x, y List) List {
 	min := MinInts(Int(xlen), Int(ylen))
 	ret := ZipLess(x, y)
 	nils := make(List, max-min)
-	for idx, _ := range nils {
+	for idx := range nils {
 		nils[idx] = nil
 	}
 	if xlen > int(min) {
@@ -217,6 +217,7 @@ func Zip(x, y List) List {
 	return ret
 }
 
+// ZipLess 在 Zip 时放弃超出的部分，类似 inner join 的效果
 func ZipLess(x, y List) List {
 	xlen := len(x)
 	ylen := len(y)
@@ -228,6 +229,7 @@ func ZipLess(x, y List) List {
 	return ret
 }
 
+// L 构造一个 List
 func L(data ...interface{}) List {
 	l := make(List, len(data))
 	for idx, item := range data {

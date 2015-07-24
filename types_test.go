@@ -6,35 +6,36 @@ import (
 )
 
 func TestTypeBool(t *testing.T) {
-	var b bool = true
+	var b = true
 	if !reflect.DeepEqual(reflect.TypeOf(b), BOOL) {
 		t.Fatalf("except %v equal string reflect type.", BOOL)
 	}
 }
 
 func TestTypeString(t *testing.T) {
-	var str string = ""
+	var str = ""
 	if !reflect.DeepEqual(reflect.TypeOf(str), STRING) {
 		t.Fatalf("except %v equal string reflect type.", STRING)
 	}
 }
 
 func TestTypeInt(t *testing.T) {
-	var i Int = 0
+	var i Int
 	if !reflect.DeepEqual(reflect.TypeOf(i), INT) {
 		t.Fatalf("except %v equal Int reflect type.", INT)
 	}
 }
 
 func TestTypeFloat(t *testing.T) {
-	var f Float = 0.0
+	var f Float
 	if !reflect.DeepEqual(reflect.TypeOf(f), FLOAT) {
 		t.Fatalf("except %v equal Float reflect type.", FLOAT)
 	}
 }
 
 func TestTypeAny(t *testing.T) {
-	var it interface{} = ""
+	var it interface{}
+	it = ""
 	typ := reflect.TypeOf(&it).Elem()
 	if !reflect.DeepEqual(typ, ANY) {
 		t.Fatalf("except %v equal interface{} reflect type %v.", ANY, typ)
@@ -42,7 +43,7 @@ func TestTypeAny(t *testing.T) {
 }
 
 func TestTypeAtom(t *testing.T) {
-	var atom Atom = Atom{"any", Type{reflect.TypeOf(0), true}}
+	var atom = Atom{"any", Type{reflect.TypeOf(0), true}}
 	if !reflect.DeepEqual(reflect.TypeOf(atom), ATOM) {
 		t.Fatalf("except %v equal Atom reflect type.", ATOM)
 	}

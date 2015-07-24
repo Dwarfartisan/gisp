@@ -25,6 +25,7 @@ func NewGisp(buildins map[string]Toolbox) *Gisp {
 	return &ret
 }
 
+// NewGispWith 允许用户在构造 gisp 环境时指定使用的包
 func NewGispWith(buildins map[string]Toolbox, ext map[string]Toolbox) *Gisp {
 	gisp := NewGisp(buildins)
 	if ext == nil {
@@ -36,7 +37,7 @@ func NewGispWith(buildins map[string]Toolbox, ext map[string]Toolbox) *Gisp {
 	return gisp
 }
 
-// def as = def var + set var
+// DefAs : def as = def var + set var
 func (gisp *Gisp) DefAs(name string, value interface{}) error {
 	t := Type{reflect.TypeOf(value), false}
 	slot := VarSlot(t)
@@ -44,7 +45,7 @@ func (gisp *Gisp) DefAs(name string, value interface{}) error {
 	return gisp.Defvar(name, slot)
 }
 
-// def option as  = def var? + set var
+// DefOptAs : def option as  = def var? + set var
 func (gisp *Gisp) DefOptAs(name string, value interface{}) error {
 	t := Type{reflect.TypeOf(value), true}
 	slot := VarSlot(t)
@@ -81,7 +82,7 @@ func (gisp *Gisp) Defun(name string, functor Functor) error {
 	return nil
 }
 
-// Set 实现 Env.Set 接口
+// Setvar 实现 Env.Set 接口
 func (gisp *Gisp) Setvar(name string, value interface{}) error {
 	if s, ok := gisp.Content[name]; ok {
 		switch slot := s.(type) {
@@ -98,26 +99,26 @@ func (gisp *Gisp) Setvar(name string, value interface{}) error {
 	}
 }
 
+// Local 实现了对命名的本地查找定位
 func (gisp Gisp) Local(name string) (interface{}, bool) {
 	if value, ok := gisp.Content[name]; ok {
 		if slot, ok := value.(Var); ok {
 			return slot.Get(), true
 		}
 		return value, true
-	} else {
-		return nil, false
 	}
+	return nil, false
 }
 
+// Lookup 允许向上查找
 func (gisp Gisp) Lookup(name string) (interface{}, bool) {
 	if value, ok := gisp.Local(name); ok {
 		return value, true
-	} else {
-		return gisp.Global(name)
 	}
+	return gisp.Global(name)
 }
 
-// look up in buildins
+// Global look up in buildins
 func (gisp Gisp) Global(name string) (interface{}, bool) {
 	buildins := gisp.Meta["buildins"].(map[string]Toolbox)
 	for _, env := range buildins {
@@ -128,6 +129,7 @@ func (gisp Gisp) Global(name string) (interface{}, bool) {
 	return nil, false
 }
 
+// Parse 解释执行一段文本
 func (gisp *Gisp) Parse(code string) (interface{}, error) {
 	st := p.MemoryParseState(code)
 	var v interface{}
@@ -153,6 +155,7 @@ func (gisp *Gisp) Parse(code string) (interface{}, error) {
 	return v, e
 }
 
+// Eval 解释执行一串 Lisp 序列
 func (gisp *Gisp) Eval(lisps ...interface{}) (interface{}, error) {
 	var ret interface{}
 	var err error

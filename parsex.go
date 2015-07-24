@@ -8,7 +8,8 @@ import (
 	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
-var Parsex Toolkit = Toolkit{
+// Parsex 包为 gisp 解释器提供 parsex 解析工具
+var Parsex = Toolkit{
 	Meta: map[string]interface{}{
 		"name":     "parsex",
 		"category": "package",
@@ -348,11 +349,11 @@ var Parsex Toolkit = Toolkit{
 							return nil, err
 						}
 					}
-					switch parser_ := pr.(type) {
+					switch parser := pr.(type) {
 					case px.Parser:
-						return parser_
+						return parser
 					case Parsexer:
-						return parser_.Parser
+						return parser.Parser
 					default:
 						return func(st px.ParsexState) (interface{}, error) {
 							return nil, ParsexSignErrorf("excpet got a parser but %v", pr)
@@ -432,6 +433,7 @@ var Parsex Toolkit = Toolkit{
 	},
 }
 
+// NewStringState 构造一个新的基于字符串的 state
 func NewStringState(data string) *px.StateInMemory {
 	buf := make([]interface{}, len(data))
 	for idx, r := range data {
@@ -440,10 +442,12 @@ func NewStringState(data string) *px.StateInMemory {
 	return px.NewStateInMemory(buf)
 }
 
+// Parsexer 实现一个 parsex 封装
 type Parsexer struct {
 	Parser px.Parser
 }
 
+// Task 定义了 parsex 的求值
 func (parsex Parsexer) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf(
@@ -464,19 +468,23 @@ func (parsex Parsexer) Task(env Env, args ...interface{}) (Lisp, error) {
 	return ParsexTask{parsex.Parser, st}, nil
 }
 
+// Eval 定义了其解析求值时直接返回 parsex
 func (parsex Parsexer) Eval(env Env) (interface{}, error) {
 	return parsex, nil
 }
 
+// ParsexBox 定义了一个 Parsexer 的封装
 func ParsexBox(parser px.Parser) Lisp {
 	return Parsexer{parser}
 }
 
+// ParsexTask 定义了延迟执行 Parsex 的行为
 type ParsexTask struct {
 	Parser px.Parser
 	State  px.ParsexState
 }
 
+// Eval 定义了 parsex task 的解析求值
 func (pt ParsexTask) Eval(env Env) (interface{}, error) {
 	return pt.Parser(pt.State)
 }

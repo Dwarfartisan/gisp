@@ -1,8 +1,9 @@
 package gisp
 
 import (
-	p "github.com/Dwarfartisan/goparsec"
 	"strconv"
+
+	p "github.com/Dwarfartisan/goparsec"
 )
 
 // Float 是 gisp 系统的浮点数实现

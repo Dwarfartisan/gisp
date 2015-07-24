@@ -1,9 +1,10 @@
 package gisp
 
 import (
-	p "github.com/Dwarfartisan/goparsec"
 	"reflect"
 	"testing"
+
+	p "github.com/Dwarfartisan/goparsec"
 )
 
 func TestAtomParse0(t *testing.T) {

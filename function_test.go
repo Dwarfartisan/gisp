@@ -1,9 +1,10 @@
 package gisp
 
 import (
-	px "github.com/Dwarfartisan/goparsec/parsex"
 	"reflect"
 	"testing"
+
+	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
 // declare a struct for overload test

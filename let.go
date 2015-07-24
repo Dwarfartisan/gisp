@@ -2,6 +2,7 @@ package gisp
 
 import (
 	"fmt"
+
 	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
@@ -11,6 +12,7 @@ type Let struct {
 	Content List
 }
 
+// LetFunc 构造一个 Let 环境
 func LetFunc(env Env, args ...interface{}) (Lisp, error) {
 	st := px.NewStateInMemory(args)
 	_, err := TypeAs(LIST)(st)
@@ -114,9 +116,8 @@ func (let Let) Local(name string) (interface{}, bool) {
 	local := let.Meta["local"].(map[string]Var)
 	if slot, ok := local[name]; ok {
 		return slot.Get(), true
-	} else {
-		return nil, false
 	}
+	return nil, false
 }
 
 // Lookup 实现 Env.Lookup

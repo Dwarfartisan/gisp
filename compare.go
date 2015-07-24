@@ -2,12 +2,14 @@ package gisp
 
 import (
 	"fmt"
-	px "github.com/Dwarfartisan/goparsec/parsex"
 	"io"
 	"reflect"
 	tm "time"
+
+	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
+// FalseIfHasNil 实现一个 is nil 判断
 func FalseIfHasNil(st px.ParsexState) (interface{}, error) {
 	for {
 		val, err := px.AnyOne(st)
@@ -23,6 +25,7 @@ func FalseIfHasNil(st px.ParsexState) (interface{}, error) {
 	}
 }
 
+// LessThanNil 实现三值 Less
 func LessThanNil(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		val, _ := px.AnyOne(st)
@@ -33,6 +36,7 @@ func LessThanNil(x interface{}) px.Parser {
 	}
 }
 
+// ListValue 检查 state 中下一个值是否是列表
 func ListValue(st px.ParsexState) (interface{}, error) {
 	val, err := px.AnyOne(st)
 	if err == nil {
@@ -44,6 +48,7 @@ func ListValue(st px.ParsexState) (interface{}, error) {
 	return nil, ParsexSignErrorf("except a list value but error: %v", err)
 }
 
+// LessThanList 从最近的环境中找到 < 的实现并调用其进行比较，这样用户可以自己实现特化的比较
 func LessThanList(env Env) func(x interface{}) px.Parser {
 	lessp, ok := env.Lookup("<")
 	return func(x interface{}) px.Parser {
@@ -69,6 +74,7 @@ func LessThanList(env Env) func(x interface{}) px.Parser {
 	}
 }
 
+// LessThanListOption 允许返回 nil
 func LessThanListOption(env Env) func(x interface{}) px.Parser {
 	lessp, ok := env.Lookup("<?")
 	return func(x interface{}) px.Parser {
@@ -94,6 +100,7 @@ func LessThanListOption(env Env) func(x interface{}) px.Parser {
 	}
 }
 
+// TimeValue 判断 state 中下一个元素是否为 time.Time
 func TimeValue(st px.ParsexState) (interface{}, error) {
 	val, err := px.AnyOne(st)
 	if err == nil {
@@ -105,6 +112,7 @@ func TimeValue(st px.ParsexState) (interface{}, error) {
 	return nil, ParsexSignErrorf("except a time value but error: %v", err)
 }
 
+// LessThanTime 对 Time 值进行比较
 func LessThanTime(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := TimeValue(st)
@@ -115,6 +123,7 @@ func LessThanTime(x interface{}) px.Parser {
 	}
 }
 
+// StringValue 判断 state 中下一个值是否为 String
 func StringValue(st px.ParsexState) (interface{}, error) {
 	val, err := px.StringVal(st)
 	if err == nil {
@@ -123,6 +132,7 @@ func StringValue(st px.ParsexState) (interface{}, error) {
 	return nil, ParsexSignErrorf("except a string value but error: %v", err)
 }
 
+// LessThanInt 实现整数的比较
 func LessThanInt(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := IntValue(st)
@@ -133,6 +143,7 @@ func LessThanInt(x interface{}) px.Parser {
 	}
 }
 
+// LessThanFloat 实现浮点数的比较
 func LessThanFloat(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := FloatValue(st)
@@ -150,6 +161,7 @@ func LessThanFloat(x interface{}) px.Parser {
 	}
 }
 
+// LessThanNumber 实现数值的比较
 func LessThanNumber(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		pos := st.Pos()
@@ -162,6 +174,7 @@ func LessThanNumber(x interface{}) px.Parser {
 	}
 }
 
+// LessThanString 实现字符串的比较
 func LessThanString(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := px.StringVal(st)
@@ -327,6 +340,7 @@ func cmpListIn(env Env, x, y List) (interface{}, error) {
 	return nil, fmt.Errorf("Compare Error: Unknown howto copmare %v and %v", x, y)
 }
 
+// CmpInt 实现两个整数的三向比较
 func CmpInt(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := IntValue(st)
@@ -337,6 +351,7 @@ func CmpInt(x interface{}) px.Parser {
 	}
 }
 
+// CmpFloat 实现两个浮点数的三向比较
 func CmpFloat(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := FloatValue(st)
@@ -354,6 +369,7 @@ func CmpFloat(x interface{}) px.Parser {
 	}
 }
 
+// CmpNumber 实现两个数值的三向比较
 func CmpNumber(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		pos := st.Pos()
@@ -366,6 +382,7 @@ func CmpNumber(x interface{}) px.Parser {
 	}
 }
 
+// CmpString 实现两个字符串的三向比较
 func CmpString(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := px.StringVal(st)
@@ -377,6 +394,7 @@ func CmpString(x interface{}) px.Parser {
 	}
 }
 
+// CmpTime 实现两个Time的三向比较
 func CmpTime(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := TimeValue(st)
@@ -500,6 +518,7 @@ func neqsOption(st px.ParsexState) (interface{}, error) {
 	}
 }
 
+// String2Values 将两个 StringValue 串为 List
 var String2Values = px.Bind(StringValue, func(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := StringValue(st)
@@ -510,6 +529,7 @@ var String2Values = px.Bind(StringValue, func(x interface{}) px.Parser {
 	}
 })
 
+//TimeValue 将两个 Time 值串为 List
 var Time2Values = px.Bind(TimeValue, func(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := TimeValue(st)
@@ -520,6 +540,7 @@ var Time2Values = px.Bind(TimeValue, func(x interface{}) px.Parser {
 	}
 })
 
+//ListValue 将两个 Time 值串为 List
 var List2Values = px.Bind(ListValue, func(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := ListValue(st)

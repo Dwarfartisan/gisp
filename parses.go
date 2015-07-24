@@ -8,7 +8,12 @@ import (
 	p "github.com/Dwarfartisan/goparsec"
 )
 
+// Ext 扩展表示扩展环境
+
+// Space 即空格判定
 var Space = p.Space
+
+// Skip 忽略匹配指定算子的内容
 var Skip = p.Skip(Space)
 
 // IntParser 解析整数
@@ -73,6 +78,7 @@ var EscapeCharr = p.Bind_(p.Rune('\\'), func(st p.ParseState) (interface{}, erro
 	}
 })
 
+// RuneParser 实现 rune 的解析
 var RuneParser = p.Bind(
 	p.Between(p.Rune('\''), p.Rune('\''),
 		p.Either(p.Try(EscapeCharr), p.NoneOf("'"))),
@@ -81,6 +87,7 @@ var RuneParser = p.Bind(
 	},
 )
 
+// StringParser 实现字符串解析
 var StringParser = p.Bind(
 	p.Between(p.Rune('"'), p.Rune('"'),
 		p.Many(p.Either(p.Try(EscapeChars), p.NoneOf("\"")))),
@@ -100,6 +107,7 @@ func bodyParserExt(env Env) p.Parser {
 	}
 }
 
+// ListParser 实现列表解析器
 func ListParser(st p.ParseState) (interface{}, error) {
 	left := p.Bind_(p.Rune('('), Skip)
 	right := p.Bind_(Skip, p.Rune(')'))
@@ -118,12 +126,12 @@ func ListParser(st p.ParseState) (interface{}, error) {
 		_, e := empty(st)
 		if e == nil {
 			return List{}, nil
-		} else {
-			return nil, err
 		}
+		return nil, err
 	}
 }
 
+// ListParserExt 实现带扩展的列表解析器
 func ListParserExt(env Env) p.Parser {
 	left := p.Bind_(p.Rune('('), Skip)
 	right := p.Bind_(Skip, p.Rune(')'))
@@ -143,13 +151,13 @@ func ListParserExt(env Env) p.Parser {
 			_, e := empty(st)
 			if e == nil {
 				return List{}, nil
-			} else {
-				return nil, err
 			}
+			return nil, err
 		}
 	}
 }
 
+// QuoteParser 实现 Quote 语法的解析
 func QuoteParser(st p.ParseState) (interface{}, error) {
 	lisp, err := p.Bind_(p.Rune('\''),
 		p.Choice(
@@ -158,11 +166,11 @@ func QuoteParser(st p.ParseState) (interface{}, error) {
 		))(st)
 	if err == nil {
 		return Quote{lisp}, nil
-	} else {
-		return nil, err
 	}
+	return nil, err
 }
 
+// QuoteParserExt 实现带扩展的 Quote 语法的解析
 func QuoteParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		lisp, err := p.Bind_(p.Rune('\''),
@@ -172,12 +180,12 @@ func QuoteParserExt(env Env) p.Parser {
 			))(st)
 		if err == nil {
 			return Quote{lisp}, nil
-		} else {
-			return nil, err
 		}
+		return nil, err
 	}
 }
 
+// ValueParser 实现简单的值解释器
 func ValueParser(st p.ParseState) (interface{}, error) {
 	value, err := p.Choice(p.Try(StringParser),
 		p.Try(FloatParser),
@@ -194,6 +202,7 @@ func ValueParser(st p.ParseState) (interface{}, error) {
 	return value, err
 }
 
+// ValueParserExt 表示带扩展的值解释器
 func ValueParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		value, err := p.Choice(p.Try(StringParser),

@@ -8,11 +8,13 @@ import (
 	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
+// Bracket 实现中括号表达式的解析，包括序列索引、切割，字典的key查找
 type Bracket struct {
 	obj  interface{}
 	expr []interface{}
 }
 
+// Eval 方法实现 Bracket 表达式的求值
 func (bracket Bracket) Eval(env Env) (interface{}, error) {
 	obj, err := Eval(env, bracket.obj)
 	if err != nil {
@@ -116,6 +118,7 @@ func (bracket Bracket) computeIndex(val reflect.Value, input interface{}) (int, 
 		bracket.obj, bracket.expr, input)
 }
 
+// SetItemBy 根据传值对括号表达式引用的容器进行写操作，即 col[x] = y => (set col[x] y)
 func (bracket Bracket) SetItemBy(env Env, item interface{}) (interface{}, error) {
 	obj, err := Eval(env, bracket.obj)
 	if err != nil {
@@ -128,14 +131,15 @@ func (bracket Bracket) SetItemBy(env Env, item interface{}) (interface{}, error)
 	case reflect.Slice:
 		return bracket.SetSliceIndex(val, env, item)
 	default:
-		return nil, fmt.Errorf("excpet %v[%v]=%v but %v is neither slice nor map.",
+		return nil, fmt.Errorf("Excpet %v[%v]=%v but %v is neither slice nor map",
 			obj, item, bracket.expr, obj)
 	}
 }
 
+// SetMapIndex 是给 Map 类型写入键值的特化实现
 func (bracket Bracket) SetMapIndex(val reflect.Value, env Env, item interface{}) (interface{}, error) {
 	if len(bracket.expr) != 1 {
-		return nil, fmt.Errorf("excpet %v[%v]=%v but %v has error items(only accept one key).",
+		return nil, fmt.Errorf("Excpet %v[%v]=%v but %v has error items(only accept one key)",
 			val.Interface(), bracket.expr, item, bracket.expr)
 	}
 	k, err := Eval(env, bracket.expr[0])
@@ -148,9 +152,10 @@ func (bracket Bracket) SetMapIndex(val reflect.Value, env Env, item interface{})
 	return val.Interface(), nil
 }
 
+// SetSliceIndex 是为线性序列切片进行写操作的实现
 func (bracket Bracket) SetSliceIndex(val reflect.Value, env Env, item interface{}) (interface{}, error) {
 	if len(bracket.expr) < 1 {
-		return nil, fmt.Errorf("excpet %v[%v]=%v but %v has error items(only accept one or two key).",
+		return nil, fmt.Errorf("excpet %v[%v]=%v but %v has error items(only accept one or two key)",
 			val.Interface(), bracket.expr, item, bracket.expr)
 	}
 	item, err := Eval(env, bracket.expr[0])
@@ -166,6 +171,7 @@ func (bracket Bracket) SetSliceIndex(val reflect.Value, env Env, item interface{
 	return val.Interface(), nil
 }
 
+// IntVal 尝试将 state 中的下一个数据解为 int
 func IntVal(st px.ParsexState) (interface{}, error) {
 	x, err := st.Next(px.Always)
 	if err != nil {
@@ -177,22 +183,26 @@ func IntVal(st px.ParsexState) (interface{}, error) {
 	return nil, fmt.Errorf("except a Int value but got %v", x)
 }
 
+// BracketParser 尝试将 state 中下一个值解析为中括号表达式
 func BracketParser(st p.ParseState) (interface{}, error) {
 	return p.Between(p.Rune('['), p.Rune(']'),
 		p.SepBy1(ValueParser, p.Rune(':')),
 	)(st)
 }
 
+// BracketParserExt 在带有 Ext 的环境下对中括号表达式求值
 func BracketParserExt(env Env) p.Parser {
 	return p.Between(p.Rune('['), p.Rune(']'),
 		p.SepBy1(ValueParserExt(env), p.Rune(':')),
 	)
 }
 
+//BracketExpr 结构实现中括号表达式的
 type BracketExpr struct {
 	Expr []interface{}
 }
 
+// Task 的实现会返回 Bracket 对象
 func (be BracketExpr) Task(env Env, args ...interface{}) (Lisp, error) {
 	if len(args) != 1 {
 		return nil, ParsexSignErrorf("Bracket Expression Args Error: except a arg but %v", args)
@@ -200,6 +210,7 @@ func (be BracketExpr) Task(env Env, args ...interface{}) (Lisp, error) {
 	return Bracket{args[0], be.Expr}, nil
 }
 
+// BracketExprParserExt 返回带 Ext 环境的 BracketExpr 。
 func BracketExprParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		expr, err := BracketParserExt(env)(st)

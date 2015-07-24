@@ -2,10 +2,12 @@ package gisp
 
 import (
 	"fmt"
-	px "github.com/Dwarfartisan/goparsec/parsex"
 	"reflect"
+
+	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
+// TypeMatchError 定了类型匹配错误
 type TypeMatchError struct {
 	Value interface{}
 	Type  reflect.Type
@@ -15,6 +17,7 @@ func (err TypeMatchError) Error() string {
 	return fmt.Sprintf("%v not match type %v", err.Value, err.Type)
 }
 
+// NotIntError 定了预期为整型但是校验失败的错误
 type NotIntError struct {
 	Value interface{}
 }
@@ -23,6 +26,7 @@ func (err NotIntError) Error() string {
 	return fmt.Sprintf("%v is't a valid Int", err.Value)
 }
 
+// NotFloatError 定义了预期为浮点数但是校验失败的错误
 type NotFloatError struct {
 	Value interface{}
 }
@@ -31,6 +35,7 @@ func (err NotFloatError) Error() string {
 	return fmt.Sprintf("%v is't a valid Float", err.Value)
 }
 
+// NotNumberError 定义了预期为数值但是校验失败的错误
 type NotNumberError struct {
 	Value interface{}
 }
@@ -111,6 +116,7 @@ func NumberValue(st px.ParsexState) (interface{}, error) {
 	}
 }
 
+// Int2Values 获取多个 int
 var Int2Values = px.Bind(IntValue, func(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := IntValue(st)
@@ -121,6 +127,7 @@ var Int2Values = px.Bind(IntValue, func(x interface{}) px.Parser {
 	}
 })
 
+// Num2Values 获取多个 int
 var Num2Values = px.Bind(NumberValue, func(x interface{}) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		y, err := NumberValue(st)
@@ -131,7 +138,7 @@ var Num2Values = px.Bind(NumberValue, func(x interface{}) px.Parser {
 	}
 })
 
-func xEof(x interface{}) px.Parser {
+func xEOF(x interface{}) px.Parser {
 	return px.Bind_(px.Eof, px.Return(x))
 }
 

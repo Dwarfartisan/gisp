@@ -4,11 +4,13 @@ import (
 	"fmt"
 )
 
+// Task 定义了可执行的通用结构
 type Task struct {
 	Meta    map[string]interface{}
 	Content []interface{}
 }
 
+// Local 定义了 task 本地环境中的变量查找
 func (task Task) Local(name string) (interface{}, bool) {
 	my := task.Meta["my"].(map[string]Var)
 	if slot, ok := my[name]; ok {
@@ -23,6 +25,7 @@ func (task Task) Local(name string) (interface{}, bool) {
 	return value, ok
 }
 
+// ParameterValue 获取指定参数
 func (task Task) ParameterValue(name string) (interface{}, bool) {
 	formals := task.Meta["formal parameters"].(List)
 	actuals := task.Meta["actual parameters"].([]interface{})
@@ -48,43 +51,43 @@ func (task Task) ParameterValue(name string) (interface{}, bool) {
 	return nil, false
 }
 
+// Global 在外部环境中查找
 func (task Task) Global(name string) (interface{}, bool) {
 	global := task.Meta["global"].(Env)
 	return global.Lookup(name)
 }
 
+// Lookup 执行自内而外的查找
 func (task Task) Lookup(name string) (interface{}, bool) {
 	if value, ok := task.Local(name); ok {
 		return value, true
-	} else {
-		return task.Global(name)
 	}
+	return task.Global(name)
 }
 
+// Setvar 实现赋值行为
 func (task Task) Setvar(name string, value interface{}) error {
 	mine := task.Meta["my"].(map[string]Var)
 	if _, ok := mine[name]; ok {
 		mine[name].Set(value)
 		return nil
-	} else {
-		local := task.Meta["local"].(map[string]Var)
-		if _, ok := local[name]; ok {
-			local[name].Set(value)
-			return nil
-		} else {
-			return fmt.Errorf("can't found var named %s", name)
-		}
 	}
+	local := task.Meta["local"].(map[string]Var)
+	if _, ok := local[name]; ok {
+		local[name].Set(value)
+		return nil
+	}
+	return fmt.Errorf("can't found var named %s", name)
 }
 
+// Defvar 定义新变量
 func (task Task) Defvar(name string, slot Var) error {
 	mine := task.Meta["my"].(map[string]Var)
 	if _, ok := mine[name]; ok {
-		return fmt.Errorf("%s was exists.", name)
-	} else {
-		mine[name] = slot
-		return nil
+		return fmt.Errorf("%s was exists", name)
 	}
+	mine[name] = slot
+	return nil
 }
 
 // Defun 实现 Env.Defun
@@ -104,6 +107,7 @@ func (task Task) Defun(name string, functor Functor) error {
 	return nil
 }
 
+// Eval 实现求值逻辑
 func (task Task) Eval(env Env) (interface{}, error) {
 	formals := task.Meta["formal parameters"].(List)
 	actuals := task.Meta["actual parameters"].([]interface{})

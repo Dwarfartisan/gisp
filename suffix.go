@@ -4,6 +4,7 @@ import (
 	p "github.com/Dwarfartisan/goparsec"
 )
 
+// DotSuffix 表示带 dot 分割的后缀的表达式
 func DotSuffix(x interface{}) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		d, err := DotParser(st)
@@ -24,6 +25,7 @@ func dotSuffix(x interface{}) p.Parser {
 	}
 }
 
+// BracketSuffix 表示带 [] 后缀的表达式
 func BracketSuffix(x interface{}) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		b, err := p.Try(BracketParser)(st)
@@ -34,6 +36,7 @@ func BracketSuffix(x interface{}) p.Parser {
 	}
 }
 
+// BracketSuffixExt 带扩展环境，可以在指定的环境中解释[]中的token
 func BracketSuffixExt(env Env) func(interface{}) p.Parser {
 	return func(x interface{}) p.Parser {
 		return func(st p.ParseState) (interface{}, error) {
@@ -67,14 +70,18 @@ func bracketSuffixExt(env Env) func(interface{}) p.Parser {
 		}
 	}
 }
+
+// DotSuffixParser 定义 dot 表达式判定
 func DotSuffixParser(x interface{}) p.Parser {
 	return p.Either(p.Try(DotSuffix(x)), p.Return(x))
 }
 
+// BracketSuffixParser 定义 bracket 表达式判定
 func BracketSuffixParser(x interface{}) p.Parser {
 	return p.Either(p.Try(BracketSuffix(x)), p.Return(x))
 }
 
+// SuffixParser 定义了后缀表达式的通用判定
 func SuffixParser(prefix interface{}) p.Parser {
 	suffix := p.Either(p.Try(DotSuffix(prefix)), BracketSuffix(prefix))
 	return func(st p.ParseState) (interface{}, error) {
@@ -86,6 +93,7 @@ func SuffixParser(prefix interface{}) p.Parser {
 	}
 }
 
+// SuffixParserExt 在后缀表达式判定中允许传入环境
 func SuffixParserExt(env Env) func(interface{}) p.Parser {
 	return func(prefix interface{}) p.Parser {
 		suffix := p.Either(p.Try(DotSuffix(prefix)), BracketSuffixExt(env)(prefix))

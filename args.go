@@ -2,8 +2,9 @@ package gisp
 
 import (
 	"fmt"
-	px "github.com/Dwarfartisan/goparsec/parsex"
 	"reflect"
+
+	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
 func typeis(x Atom) func(int, interface{}) (interface{}, error) {
@@ -11,21 +12,20 @@ func typeis(x Atom) func(int, interface{}) (interface{}, error) {
 		if data == nil {
 			if x.Type.Option() {
 				return data, nil
-			} else {
-				return nil, fmt.Errorf("%v's type not match %v", data, x.Type)
 			}
+			return nil, fmt.Errorf("%v's type not match %v", data, x.Type)
 		}
 		if reflect.DeepEqual(x.Type.Type, ANY) {
 			return data, nil
 		}
 		if reflect.DeepEqual(x.Type.Type, reflect.TypeOf(data)) {
 			return data, nil
-		} else {
-			return data, TypeSignError{x.Type, data}
 		}
+		return data, TypeSignError{x.Type, data}
 	}
 }
 
+// TypeAs 函数根据反射对 Gisp 数据进行类型判断
 func TypeAs(typ reflect.Type) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		obj, err := st.Next(px.Always)
@@ -35,11 +35,9 @@ func TypeAs(typ reflect.Type) px.Parser {
 		otype := reflect.TypeOf(obj)
 		if otype == typ {
 			return obj, nil
-		} else {
-			return nil, fmt.Errorf("Args Type Sign Check: excpet %v but %v is",
-				typ, obj, otype)
 		}
-
+		return nil, fmt.Errorf("Args Type Sign Check: excpet %v but %v is",
+			typ, obj, otype)
 	}
 }
 
@@ -47,19 +45,18 @@ func TypeAs(typ reflect.Type) px.Parser {
 // Var。
 func argParser(atom Atom) px.Parser {
 	one := func(st px.ParsexState) (interface{}, error) {
+		var err error
 		if data, err := st.Next(typeis(atom)); err == nil {
 			slot := VarSlot(atom.Type)
 			slot.Set(data)
 			return slot, nil
-		} else {
-			return nil, err
 		}
+		return nil, err
 	}
 	if atom.Name == "..." {
 		return px.Many(one)
-	} else {
-		return one
 	}
+	return one
 }
 
 // argRing 组成参数解析链的的后续逻辑，供 parsex.Binds 调用
@@ -69,13 +66,13 @@ func argRing(atom Atom) func(interface{}) px.Parser {
 			ring, err := argParser(atom)(st)
 			if err == nil {
 				return append(x.([]Var), ring.([]Var)...), nil
-			} else {
-				return nil, err
 			}
+			return nil, err
 		}
 	}
 }
 
+// GetArgs 方法为将传入的 args 的 gisp 值从指定环境中解析出来，然后传入 parser 。
 func GetArgs(env Env, parser px.Parser, args []interface{}) ([]interface{}, error) {
 	ret, err := Evals(env, args...)
 	if err != nil {

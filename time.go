@@ -1,10 +1,12 @@
 package gisp
 
 import (
-	px "github.com/Dwarfartisan/goparsec/parsex"
 	tm "time"
+
+	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
+// Time 包引入了go的time包功能
 var Time = Toolkit{
 	Meta: map[string]interface{}{
 		"category": "toolkit",

@@ -29,6 +29,7 @@ func DeclareLambda(env Env, args List, lisps ...interface{}) (*Lambda, error) {
 	return &ret, nil
 }
 
+// LambdaExpr 生成一个封装后的 Lambda 表达式
 func LambdaExpr(env Env, args ...interface{}) (Tasker, error) {
 	st := px.NewStateInMemory(args)
 	_, err := TypeAs(LIST)(st)
@@ -125,16 +126,15 @@ func (lambda Lambda) prepareList(env Env, prepare map[string]bool, content List)
 	for key := range prepare {
 		next[key] = true
 	}
-	var err error = nil
+	var err error
 	fun := content[0].(Atom)
 	switch fun.Name {
 	case "var":
 		name := content[1].(string)
 		if err != nil {
 			return err
-		} else {
-			next[name] = true
 		}
+		next[name] = true
 	case "lambda":
 		args := content[1].(List)
 		for _, a := range args {
@@ -159,7 +159,7 @@ func (lambda Lambda) prepareList(env Env, prepare map[string]bool, content List)
 	return err
 }
 
-// 类型签名
+// TypeSign 生成反射类型签名
 func (lambda Lambda) TypeSign() []Type {
 	formals := lambda.Meta["formal parameters"].(List)
 	types := make([]Type, len(formals))
@@ -169,6 +169,7 @@ func (lambda Lambda) TypeSign() []Type {
 	return types
 }
 
+// MatchArgsSign 校验参数是否匹配
 func (lambda Lambda) MatchArgsSign(env Env, args ...interface{}) (interface{}, error) {
 	params := make([]interface{}, len(args))
 	for idx, arg := range args {
@@ -183,7 +184,7 @@ func (lambda Lambda) MatchArgsSign(env Env, args ...interface{}) (interface{}, e
 	return px.UnionAll(pxs...)(st)
 }
 
-// create a lambda s-Expr can be eval
+// Task create a lambda s-Expr can be eval
 func (lambda Lambda) Task(env Env, args ...interface{}) (Lisp, error) {
 	meta := map[string]interface{}{}
 	for k, v := range lambda.Meta {

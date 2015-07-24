@@ -1,7 +1,9 @@
 package gisp
 
+// T 是 interface{} 的简写
 type T interface{}
 
+// Linq 定义了 linq 接口
 type Linq interface {
 	From(input T) Linq
 	Range(start, count int)

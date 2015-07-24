@@ -1,10 +1,12 @@
 package gisp
 
 import (
-	p "github.com/Dwarfartisan/goparsec"
 	"reflect"
+
+	p "github.com/Dwarfartisan/goparsec"
 )
 
+//Type 对象定义了一个可空的反射类型，用于 Lisp 对象定义
 type Type struct {
 	reflect.Type
 	option bool
@@ -14,11 +16,11 @@ func (typ Type) String() string {
 	str := typ.Type.String()
 	if typ.option {
 		return str + "?"
-	} else {
-		return str
 	}
+	return str
 }
 
+// Option 指示类型是否是可空的
 func (typ Type) Option() bool {
 	return typ.option
 }
@@ -48,6 +50,7 @@ func typeName(word string) p.Parser {
 
 var anyType = p.Bind(p.Bind(p.Many1(p.Either(p.Try(p.Digit), p.Letter)), stopWord), p.ReturnString)
 
+// SliceTypeParserExt 定义了带环境的序列类型解析逻辑
 func SliceTypeParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		t, err := p.Bind_(p.String("[]"), ExtTypeParser(env))(st)
@@ -58,6 +61,7 @@ func SliceTypeParserExt(env Env) p.Parser {
 	}
 }
 
+// MapTypeParserExt  定义了带环境的映射类型解析逻辑
 func MapTypeParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		key, err := p.Between(p.String("map["), p.Rune(']'), ExtTypeParser(env))(st)
@@ -72,6 +76,7 @@ func MapTypeParserExt(env Env) p.Parser {
 	}
 }
 
+// MapTypeParser 定义了序列类型解析逻辑
 func MapTypeParser(st p.ParseState) (interface{}, error) {
 	key, err := p.Between(p.String("map["), p.Rune(']'), TypeParser)(st)
 	if err != nil {
@@ -84,6 +89,7 @@ func MapTypeParser(st p.ParseState) (interface{}, error) {
 	return reflect.MapOf(key.(Type).Type, value.(Type).Type), nil
 }
 
+// ExtTypeParser 定义了带环境的类型解释器
 func ExtTypeParser(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		_, err := p.String("::")(st)
@@ -115,9 +121,8 @@ func ExtTypeParser(env Env) p.Parser {
 			}
 			if typ, ok := t.(reflect.Type); ok {
 				return typ, nil
-			} else {
-				return nil, st.Trap("var %v is't a type. It is %v", n, reflect.TypeOf(t))
 			}
+			return nil, st.Trap("var %v is't a type. It is %v", n, reflect.TypeOf(t))
 		}
 		t, err := p.Either(buildin, ext)(st)
 		if err != nil {
@@ -129,6 +134,7 @@ func ExtTypeParser(env Env) p.Parser {
 	}
 }
 
+// TypeParser 定义了一个基本的类型解释器
 func TypeParser(st p.ParseState) (interface{}, error) {
 	t, err := p.Bind_(p.String("::"),
 		p.Choice(

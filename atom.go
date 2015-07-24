@@ -51,6 +51,7 @@ func atomNameParser(st p.ParseState) (interface{}, error) {
 	return ret, nil
 }
 
+// AtomParserExt 生成带扩展包的 Atom
 func AtomParserExt(env Env) p.Parser {
 	return func(st p.ParseState) (interface{}, error) {
 		a, err := atomNameParser(st)
@@ -60,12 +61,12 @@ func AtomParserExt(env Env) p.Parser {
 		t, err := p.Try(ExtTypeParser(env))(st)
 		if err == nil {
 			return Atom{a.(string), t.(Type)}, nil
-		} else {
-			return Atom{a.(string), ANYMUST}, nil
 		}
+		return Atom{a.(string), ANYMUST}, nil
 	}
 }
 
+// AtomParser 生成 Atom 对象，但是它不带扩展环境
 func AtomParser(st p.ParseState) (interface{}, error) {
 	a, err := atomNameParser(st)
 	if err != nil {
@@ -74,7 +75,6 @@ func AtomParser(st p.ParseState) (interface{}, error) {
 	t, err := p.Try(TypeParser)(st)
 	if err == nil {
 		return Atom{a.(string), t.(Type)}, nil
-	} else {
-		return Atom{a.(string), ANYMUST}, nil
 	}
+	return Atom{a.(string), ANYMUST}, nil
 }

@@ -22,7 +22,7 @@ func TestQuoteCall(t *testing.T) {
 	if !ok {
 		t.Fatalf("except found quote in axioms")
 	}
-	var fb interface{} = nil
+	var fb interface{}
 	switch quote := q.(type) {
 	case Functor:
 		quoted, err := quote.Task(gisp, list)

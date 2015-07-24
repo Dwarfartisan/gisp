@@ -5,7 +5,8 @@ import (
 	"fmt"
 )
 
-var Utils Toolkit = Toolkit{
+// Utils 提供了一个常用函数工具包
+var Utils = Toolkit{
 	Meta: map[string]interface{}{
 		"name":     "utils",
 		"category": "package",

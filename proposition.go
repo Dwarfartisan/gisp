@@ -4,7 +4,8 @@ import (
 	px "github.com/Dwarfartisan/goparsec/parsex"
 )
 
-var Propositions Toolkit = Toolkit{
+// Propositions 给出了一组常用的操作
+var Propositions = Toolkit{
 	Meta: map[string]interface{}{
 		"name":     "propositions",
 		"category": "package",
@@ -37,6 +38,7 @@ var Propositions Toolkit = Toolkit{
 	},
 }
 
+// ParsexExpr 是 parsex 算子的解析表达式
 func ParsexExpr(pxExpr px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		data, err := Evals(env, args...)
@@ -52,6 +54,7 @@ func ParsexExpr(pxExpr px.Parser) LispExpr {
 	}
 }
 
+// ExtExpr 带扩展环境
 func ExtExpr(extExpr func(env Env) px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		data, err := Evals(env, args...)
@@ -67,6 +70,7 @@ func ExtExpr(extExpr func(env Env) px.Parser) LispExpr {
 	}
 }
 
+// NotParsex 是 not 运算符
 func NotParsex(pxExpr px.Parser) px.Parser {
 	return func(st px.ParsexState) (interface{}, error) {
 		b, err := pxExpr(st)
@@ -75,12 +79,12 @@ func NotParsex(pxExpr px.Parser) px.Parser {
 		}
 		if boolean, ok := b.(bool); ok {
 			return !boolean, nil
-		} else {
-			return nil, ParsexSignErrorf("Unknow howto not %v", b)
 		}
+		return nil, ParsexSignErrorf("Unknow howto not %v", b)
 	}
 }
 
+// ParsexReverseExpr 是倒排运算
 func ParsexReverseExpr(pxExpr px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		data, err := Evals(env, args...)
@@ -102,6 +106,7 @@ func ParsexReverseExpr(pxExpr px.Parser) LispExpr {
 	}
 }
 
+// NotExpr 定义了 not 表达式
 func NotExpr(expr LispExpr) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		element, err := expr(env, args...)
@@ -112,14 +117,15 @@ func NotExpr(expr LispExpr) LispExpr {
 		if err != nil {
 			return nil, err
 		}
+		var b bool
 		if b, ok := ret.(bool); ok {
 			return Q(!b), nil
-		} else {
-			return nil, ParsexSignErrorf("Unknow howto not %v", b)
 		}
+		return nil, ParsexSignErrorf("Unknow howto not %v", b)
 	}
 }
 
+// OrExpr 是  or 表达式
 func OrExpr(x, y px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		data, err := Evals(env, args...)
@@ -141,24 +147,26 @@ func OrExpr(x, y px.Parser) LispExpr {
 				return nil, err
 			}
 			return Q(rex), nil
-		} else {
-			return nil, ParsexSignErrorf("Unknow howto combine %v or %v for %v", x, y, data)
 		}
+		return nil, ParsexSignErrorf("Unknow howto combine %v or %v for %v", x, y, data)
 	}
 }
 
+// OrExtExpr 定了带环境扩展的 or 表达式
 func OrExtExpr(x, y func(Env) px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		return OrExpr(x(env), y(env))(env, args...)
 	}
 }
 
+// OrExtRExpr 定了带环境扩展的 or 逆向表达式
 func OrExtRExpr(x px.Parser, y func(Env) px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		return OrExpr(x, y(env))(env, args...)
 	}
 }
 
+// ExtReverseExpr 定了带环境扩展的倒排表达式
 func ExtReverseExpr(expr func(Env) px.Parser) LispExpr {
 	return func(env Env, args ...interface{}) (Lisp, error) {
 		return ParsexReverseExpr(expr(env))(env, args...)

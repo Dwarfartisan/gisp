@@ -119,4 +119,4 @@ mrmul	function_test.go	/^func mrmul() mrMul {$/
 neqs	compare.go	/^func neqs(x interface{}) px.Parser {$/
 stopWord	type.go	/^func stopWord(x interface{}) p.Parser {$/
 typeName	type.go	/^func typeName(word string) p.Parser {$/
-xEof	math.go	/^func xEof(x interface{}) px.Parser {$/
+xEOF	math.go	/^func xEOF(x interface{}) px.Parser {$/

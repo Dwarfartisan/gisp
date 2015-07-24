@@ -1,8 +1,9 @@
 package gisp
 
 import (
-	p "github.com/Dwarfartisan/goparsec"
 	"testing"
+
+	p "github.com/Dwarfartisan/goparsec"
 )
 
 func TestingBoolParse0(t *testing.T) {
